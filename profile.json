@@ -1,0 +1,198 @@
+{
+  "system_config": {
+    "version": "5.0_AGENTIC_GOLD",
+    "user_id": "AFRICA_DATA_LEAD",
+    "timezone": "CAT (UTC+2)",
+    "agent_role": "Strategic_Time_Architect",
+    "update_frequency": "Real-time (Triggered by Calendar/Canvas)"
+  },
+  "user_profile_calibration": {
+    "source": "CV_Martin_Koome_2026.pdf",
+    "competency_matrix": {
+      "coding_frameworks": {
+        "skills": ["Python", "PyTorch", "Transformers", "LightRAG", "Docker", "n8n"],
+        "level": "ADVANCED",
+        "impact": "Reduce 'Coding Setup' time estimates by 60%. Flag 'Applied CV' labs as High-ROI portfolio pieces."
+      },
+      "mathematical_foundations": {
+        "skills": ["Stochastic Processes", "Measure Theory", "Survival Analysis", "Time Series"],
+        "level": "EXPERT_ACADEMIC",
+        "impact": "Intro to ML 'Probability Review' modules are OPTIONAL. Focus purely on 'Optimization Theory' (new content)."
+      },
+      "domain_experience": {
+        "roles": ["Technical Researcher (GoJumpStart)", "Campus Link Lead"],
+        "impact": "Tech Startups course is 'Low Priority' (User has real-world MVP experience). Treat as 'Recovery/Podcast' time."
+      }
+    }
+  },
+  "user_constraints": {
+    "chronotype": "Morning_Lark_With_Afternoon_Slump",
+    "hard_rules": [
+      {
+        "rule_id": "COMMUTE_PROTECTION",
+        "logic": "Block time between 06:00 and [First_Class_Start] for 'Prep/Commute'.",
+        "enforcement": "STRICT_IMMUTABLE"
+      },
+      {
+        "rule_id": "CLASS_CONFLICT",
+        "logic": "No tasks scheduled during 'fixed_calendar_events'.",
+        "enforcement": "STRICT_IMMUTABLE"
+      }
+    ],
+    "energy_profile_mapping": {
+      "04:30-06:00": "PEAK_COGNITIVE_LOAD (Math/Complex Code)",
+      "06:00-08:00": "BLOCKED (Commute/Prep)",
+      "08:00-12:00": "ACADEMIC_EXECUTION (Classes)",
+      "13:00-16:00": "LOW_ENERGY_VALLEY (Admin, Emails, Soft Skills Reading)",
+      "16:00-19:00": "RECOVERY_OR_RECITATION (Moderate Energy)"
+    }
+  },
+  "fixed_calendar_events": [
+    {
+      "event_id": "FIXED_MON_01",
+      "day": "Monday",
+      "start": "06:00",
+      "end": "08:00",
+      "type": "Life_Maintenance",
+      "title": "Commute & School Prep",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_MON_02",
+      "day": "Monday",
+      "start": "08:00",
+      "end": "09:50",
+      "type": "Lecture",
+      "title": "AI System Design",
+      "course_id": "04652-A",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_MON_03",
+      "day": "Monday",
+      "start": "10:00",
+      "end": "11:50",
+      "type": "Lecture",
+      "title": "Applied Computer Vision",
+      "course_id": "18799",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_MON_04",
+      "day": "Monday",
+      "start": "19:00",
+      "end": "20:50",
+      "type": "Lecture",
+      "title": "Intro to ML",
+      "course_id": "18661-2",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_MON_05",
+      "day": "Monday",
+      "start": "21:00",
+      "end": "22:20",
+      "type": "Lecture",
+      "title": "Tech Startups",
+      "course_id": "04616-A",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_TUE_01",
+      "day": "Tuesday",
+      "start": "06:00",
+      "end": "08:00",
+      "type": "Life_Maintenance",
+      "title": "Commute & School Prep",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_TUE_02",
+      "day": "Tuesday",
+      "start": "08:00",
+      "end": "09:50",
+      "type": "Lecture",
+      "title": "Agentic AI",
+      "course_id": "04801-W3",
+      "priority": "IMMUTABLE"
+    },
+    {
+      "event_id": "FIXED_WED_ALL",
+      "day": "Wednesday",
+      "note": "Replicates Monday Schedule exactly (Events WED_01 to WED_05)"
+    },
+    {
+      "event_id": "FIXED_THU_ALL",
+      "day": "Thursday",
+      "note": "Replicates Tuesday Schedule exactly (Events THU_01 to THU_02)"
+    },
+    {
+      "event_id": "FIXED_FRI_01",
+      "day": "Friday",
+      "start": "17:00",
+      "end": "18:20",
+      "type": "Recitation",
+      "title": "Intro to ML Recitation",
+      "course_id": "18661-2",
+      "priority": "OPTIONAL_BUT_RECOMMENDED"
+    }
+  ],
+  "historical_behavior": {
+    "description": "Dynamic memory layer. Agent must update this based on user feedback/completion.",
+    "missed_sessions": [
+      {
+        "course_id": "18661-2",
+        "time_block": "Evening_Post_Lecture",
+        "reason": "Cognitive exhaustion after 4-class day",
+        "count": 0,
+        "agent_action": "If count > 2, stop scheduling post-lecture reviews on Mon/Wed."
+      }
+    ],
+    "successful_patterns": [
+      {
+        "pattern": "05:00 AM ML Derivations",
+        "completion_rate": 0.0,
+        "validation_threshold": 0.8,
+        "status": "LEARNING_PHASE"
+      }
+    ],
+    "energy_logs": {
+      "afternoon_slump_severity": "High (Avoid Math between 13:00-16:00)"
+    }
+  },
+  "course_policy_layer": {
+    "18661-2": {
+      "name": "Intro to ML",
+      "policy": "5 Late Days. Midterm Feb 25.",
+      "deadlines": "See 'Deadlines_Vector' in V4.0"
+    },
+    "18799": {
+      "name": "Applied CV",
+      "policy": "95% Programming. 6 Late Days.",
+      "critical_note": "High effort estimation required."
+    }
+  },
+  "agent_decision_engine": {
+    "scheduling_heuristics": [
+      {
+        "condition": "Time is 04:30 - 06:00",
+        "action": "Schedule 'Deep Work' (ML Math / CV Code). NO Emails/Admin."
+      },
+      {
+        "condition": "Time is 06:00 - 08:00",
+        "action": "HARD BLOCK: Commute/Prep. No notifications allowed."
+      },
+      {
+        "condition": "Time is 13:00 - 16:00",
+        "action": "Schedule 'Low Energy' tasks (Tech Startup Readings, Agentic AI Video Demos, Email)."
+      },
+      {
+        "condition": "Day is Monday OR Wednesday",
+        "action": "Survival Mode. No tasks between 08:00 and 12:00 (Classes). No tasks after 22:20."
+      }
+    ],
+    "recovery_protocols": {
+      "missed_morning_session": "Do NOT push to Afternoon. Push to next morning or Weekend."
+    }
+  }
+}
