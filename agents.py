@@ -5,16 +5,33 @@ from typing import List, Dict, Any
 from dotenv import load_dotenv
 
 # --- LOGGING SETUP FOR IMPLEMENTATION TRACE ---
+# Create a custom formatter for clean console output
+class CleanConsoleFormatter(logging.Formatter):
+    """Custom formatter that shows minimal info in console"""
+    def format(self, record):
+        if record.levelno >= logging.ERROR:
+            return f"❌ {record.getMessage()}"
+        elif record.levelno >= logging.WARNING:
+            return f"⚠️ {record.getMessage()}"
+        else:
+            return ""  # Don't show INFO messages in console
+
+# Setup file logging (detailed)
+file_handler = logging.FileHandler('implementation_trace.log', encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+# Setup console logging (minimal)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.WARNING)  # Only show warnings and errors
+console_handler.setFormatter(CleanConsoleFormatter())
+
+# Configure root logger
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('implementation_trace.log', encoding='utf-8'),
-        logging.StreamHandler()
-    ]
+    handlers=[file_handler, console_handler]
 )
-# Reduce console noise - only show warnings and errors in interactive mode
-logging.getLogger().handlers[1].setLevel(logging.WARNING)
+
 logger = logging.getLogger('MultiAgentSystem')
 
 # --- LANGCHAIN IMPORTS ---
@@ -69,7 +86,8 @@ class ConversationMemory:
         self.session_start_time = datetime.datetime.now().isoformat()
         self.last_planner_result: Dict[str, Any] = {}  # Store last planning result for executor
 
-    def add_turn(self, user_message: str, agent_response: str, tools_used: List[str] = None, agent_type: str = ""):
+    def add_turn(self, user_message: str, agent_response: str, tools_used: List[str] = None, 
+                 agent_type: str = ""):
         """Add a conversation turn to memory."""
         logger.info(f"MEMORY UPDATE: Adding conversation turn #{len(self.conversation_history) + 1} to memory")
         logger.info(f"USER MESSAGE: '{user_message[:100]}{'...' if len(user_message) > 100 else ''}'")
@@ -264,14 +282,14 @@ def get_strategic_memory_tool():
     Loads the existing vector store created by your ingestion script.
     Does NOT re-ingest data.
     """
-    if not os.path.exists("./chroma_db"):
+    if not os.path.exists("./advanced_chroma_db"):
         raise FileNotFoundError("❌ ChromaDB not found! Run your RAG ingestion script first.")
 
     # Re-connect to the persisted database
     vectorstore = Chroma(
-        persist_directory="./chroma_db",
+        persist_directory="./advanced_chroma_db",
         embedding_function=OpenAIEmbeddings(api_key=api_key),
-        collection_name="agentic_career_brain"
+        collection_name="advanced_agentic_brain"
     )
     
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
@@ -310,51 +328,79 @@ class AgentType(Enum):
     PLANNER = "planner"
     EXECUTOR = "executor"
 
-def classify_intent(user_query: str) -> AgentType:
-    """Classify user intent to route to appropriate agent."""
+def classify_intent(user_query: str, conversation_memory: 'ConversationMemory' = None) -> AgentType:
+    """
+    Enhanced intent classification with context awareness and approval detection.
+    """
     logger.info(f"INTENT CLASSIFICATION: Analyzing query: '{user_query[:50]}...'")
 
-    query_lower = user_query.lower()
-
-    # Executor keywords - direct execution commands
+    query_lower = user_query.lower().strip()
+    
+    # Check if there's a pending planner result that might need execution
+    has_pending_plan = conversation_memory and conversation_memory.last_planner_result
+    
+    # EXECUTOR KEYWORDS - Approval/Confirmation signals (HIGHEST PRIORITY)
     executor_keywords = [
-        'schedule it', 'create the event', 'book it', 'set it up', 'go ahead',
-        'yes schedule', 'confirm schedule', 'proceed', 'execute', 'do it',
-        'schedule the meeting', 'create event', 'add to calendar',
-        'yes go ahead', 'this options are okay', 'these options are okay',
-        'yes please', 'please schedule', 'go ahead and schedule',
-        'schedule these', 'create these events', 'book these',
-        'yes this is fine', 'this is good', 'looks good'
+        # Direct confirmations
+        'yes', 'okay', 'ok', 'sure', 'fine', 'good', 'great', 'perfect',
+        'that works', 'sounds good', 'looks good', 'that\'s fine',
+        
+        # Approval phrases
+        'go ahead', 'proceed', 'do it', 'schedule it', 'create it',
+        'book it', 'set it up', 'make it happen', 'confirm',
+        
+        # Scheduling commands
+        'schedule the meeting', 'create the event', 'add to calendar',
+        'book the appointment', 'set up the meeting',
+        
+        # Agreement variations
+        'sure that okay', 'sure that\'s okay', 'that okay', 'that\'s okay',
+        'yes please', 'please schedule', 'please create', 'please book'
     ]
-
-    # Complex scheduling/planning keywords -> Planner (needs RAG + Calendar)
+    
+    # PLANNER KEYWORDS - Complex scheduling requiring strategy
     planner_keywords = [
-        'schedule', 'plan', 'create', 'optimize', 'find time', 'study session',
-        'work plan', 'best time', 'energy', 'productivity', 'focus time',
-        'organize', 'arrange', 'design', 'strategic', 'profile', 'constraints'
+        'schedule', 'plan', 'organize', 'arrange', 'find time', 'when can',
+        'best time', 'optimal time', 'available time', 'free time',
+        'meeting with', 'appointment with', 'session for', 'time for',
+        'next available', 'earliest', 'soonest', 'later today', 'tomorrow',
+        'this week', 'next week', 'energy', 'productivity', 'focus'
     ]
-
-    # Simple calendar queries -> Manager (calendar only)
+    
+    # MANAGER KEYWORDS - Simple queries and information requests
     manager_keywords = [
-        'what is', 'check', 'view', 'availability', 'free', 'busy',
-        'today', 'tomorrow', 'schedule for', 'meetings', 'events',
-        'calendar', 'when', 'where', 'show me', 'list'
+        'what', 'when', 'where', 'how', 'show', 'list', 'check', 'view',
+        'what\'s my', 'what is my', 'do i have', 'am i', 'are there',
+        'calendar', 'schedule for', 'events', 'meetings', 'busy', 'free'
     ]
-
-    # Check for executor intent first (most specific)
+    
+    # PRIORITY 1: Check for executor intent (approval/confirmation)
+    # Special handling for short confirmations when there's a pending plan
+    if has_pending_plan:
+        # Short positive responses when there's a pending plan
+        short_confirmations = ['yes', 'ok', 'okay', 'sure', 'fine', 'good', 'great']
+        if query_lower in short_confirmations or any(keyword in query_lower for keyword in executor_keywords):
+            logger.info("DECISION: Routing to EXECUTOR AGENT - Approval detected with pending plan")
+            return AgentType.EXECUTOR
+    
+    # Check for explicit executor keywords
     if any(keyword in query_lower for keyword in executor_keywords):
         logger.info("DECISION: Routing to EXECUTOR AGENT - Execution command detected")
         return AgentType.EXECUTOR
-    elif any(keyword in query_lower for keyword in planner_keywords):
-        logger.info("DECISION: Routing to PLANNER AGENT - Complex scheduling/planning request")
+    
+    # PRIORITY 2: Check for planner intent (scheduling requests)
+    if any(keyword in query_lower for keyword in planner_keywords):
+        logger.info("DECISION: Routing to PLANNER AGENT - Complex scheduling request")
         return AgentType.PLANNER
-    elif any(keyword in query_lower for keyword in manager_keywords):
-        logger.info("DECISION: Routing to MANAGER AGENT - Calendar query/information request")
+    
+    # PRIORITY 3: Check for manager intent (information queries)
+    if any(keyword in query_lower for keyword in manager_keywords):
+        logger.info("DECISION: Routing to MANAGER AGENT - Information request")
         return AgentType.MANAGER
-    else:
-        logger.info("DECISION: Default routing to MANAGER AGENT - General calendar query")
-        # Default to manager for general calendar queries
-        return AgentType.MANAGER
+    
+    # DEFAULT: Route to manager for unclear queries
+    logger.info("DECISION: Default routing to MANAGER AGENT - Unclear intent")
+    return AgentType.MANAGER
 
 # ==============================================================================
 # MANAGER AGENT (Calendar Only)
@@ -442,13 +488,10 @@ def build_manager_agent(memory: ConversationMemory):
             ]
             tools.extend(calendar_tools)
             logger.info("CALENDAR INTEGRATION: Google Calendar tools loaded successfully")
-            print("✅ Manager Agent: Calendar tools loaded.")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
-            print(f"⚠️ Manager Agent: Calendar tools not available: {e}")
     else:
         logger.warning("CALENDAR INTEGRATION: Google Calendar tools not installed")
-        print("⚠️ Manager Agent: Calendar tools not available (package not installed)")
 
     llm = ChatOpenAI(model="gpt-4o-mini", api_key=api_key, temperature=0, max_tokens=4000)
     logger.info("LLM CONFIGURATION: ChatOpenAI gpt-4o-mini configured for MANAGER agent")
@@ -521,15 +564,21 @@ TOOL GUIDELINES:
 RESPONSE: Show ReAct process, explain reasoning, provide actionable plans.
 
 EXECUTABLE PLAN FORMAT:
-When recommending scheduling, provide:
-🎯 **RECOMMENDED TIME**: [Specific time]
-👥 **ATTENDEES**: [Who should attend]
-📝 **TITLE**: [Clear event title]
-⏱️ **DURATION**: [Length in minutes]
-📅 **CALENDAR**: [Which calendar to use]
+When recommending scheduling, provide STRUCTURED output for Executor:
+
+🎯 **RECOMMENDED TIME**: [Specific date and time, e.g., "2026-02-05 18:00"]
+👥 **ATTENDEES**: [Who should attend, e.g., "Lulu"]
+📝 **TITLE**: [Clear event title, e.g., "Meeting with Lulu"]
+⏱️ **DURATION**: [Length in minutes, e.g., "60"]
+📅 **CALENDAR**: [Which calendar to use, e.g., "mkoome@andrew.cmu.edu"]
 💡 **RATIONALE**: [Why this time is optimal]
 
+CRITICAL: Use EXACT format above so Executor can parse and create events.
 **DO NOT CREATE EVENTS** - Provide structured plans for Executor to implement.
+
+APPROVAL DETECTION:
+After providing recommendations, if user says "yes", "okay", "sure", "fine", "go ahead", etc., 
+they are approving the plan for execution. The Executor will handle the actual event creation.
 
 Current User Context: Lead Data Engineer, Masters Student, Python Expert.
 """
@@ -563,13 +612,10 @@ def build_planner_agent(memory: ConversationMemory):
             ]
             tools.extend(calendar_tools)
             logger.info("CALENDAR INTEGRATION: Google Calendar tools loaded successfully")
-            print("✅ Planner Agent: RAG + Calendar tools loaded.")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
-            print(f"⚠️ Planner Agent: Calendar tools not available: {e}")
     else:
         logger.warning("CALENDAR INTEGRATION: Google Calendar tools not installed")
-        print("⚠️ Planner Agent: Calendar tools not available (package not installed)")
 
     llm = ChatOpenAI(model="gpt-4o-mini", api_key=api_key, temperature=0, max_tokens=4000)
     logger.info("LLM CONFIGURATION: ChatOpenAI gpt-4o-mini configured for PLANNER agent")
@@ -615,25 +661,28 @@ AVAILABLE TOOLS:
 - calendar_delete_event: Delete events if needed
 
 EXECUTION WORKFLOW:
-1. **OBSERVE**: Check LAST PLANNER RESULT for ALL structured plan details (may contain multiple events)
-2. **THINK**: Parse ALL plan details, validate information, check for missing data
-3. **ACT**: Create MULTIPLE calendar events if plan contains multiple recommendations
-4. **REASON**: Verify successful creation of ALL events, handle any errors, confirm scheduling
-5. **RESPOND**: Clear confirmation of ALL scheduled events with details
+1. **OBSERVE**: Parse LAST PLANNER RESULT for structured plan details
+2. **THINK**: Extract required fields (TIME, TITLE, DURATION, ATTENDEES, CALENDAR)
+3. **ACT**: Create calendar event with parsed information
+4. **REASON**: Verify successful creation, handle any errors
+5. **RESPOND**: Confirm scheduling with full details
 
-MULTI-EVENT EXECUTION:
-- If plan contains numbered recommendations (1., 2., 3., etc.) → Create ALL events
-- If plan contains single recommendation → Create one event
-- Parse each recommendation's TIME, TITLE, DURATION, ATTENDEES, CALENDAR
-- Create events sequentially, validating each one
+PLANNER RESULT PARSING:
+Look for this EXACT format in LAST PLANNER RESULT:
+🎯 **RECOMMENDED TIME**: [Extract date/time]
+👥 **ATTENDEES**: [Extract attendees]
+📝 **TITLE**: [Extract title]
+⏱️ **DURATION**: [Extract duration in minutes]
+📅 **CALENDAR**: [Extract calendar]
+💡 **RATIONALE**: [Extract reasoning]
 
-CALENDAR CREATION REQUIREMENTS:
-- **summary**: Use TITLE from each plan item
-- **start_datetime**: Parse RECOMMENDED TIME from each plan item
-- **end_datetime**: Calculate from start + DURATION for each item
-- **timezone**: Use "Africa/Johannesburg" (CAT timezone)
-- **description**: Include ATTENDEES and RATIONALE from each plan item
-- **calendar_id**: Use "mkoome@andrew.cmu.edu" as primary calendar
+CALENDAR EVENT CREATION:
+Use create_calendar_event with these parameters:
+- summary: Use **TITLE** from plan
+- start_datetime: Use **RECOMMENDED TIME** (format: "YYYY-MM-DD HH:MM:SS")
+- duration_minutes: Use **DURATION** from plan
+- description: Combine **ATTENDEES** and **RATIONALE**
+- calendar_id: Use **CALENDAR** from plan or default "mkoome@andrew.cmu.edu"
 
 PLAN EXECUTION PRIORITY:
 - If LAST PLANNER RESULT contains structured plan → Execute that plan
@@ -731,13 +780,10 @@ SINGLE EVENT:
             ]
             tools.extend(calendar_tools)
             logger.info("CALENDAR INTEGRATION: Full calendar management tools loaded successfully")
-            print("✅ Executor Agent: Full calendar management tools loaded.")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
-            print(f"⚠️ Executor Agent: Calendar tools not available: {e}")
     else:
         logger.warning("CALENDAR INTEGRATION: Google Calendar tools not installed")
-        print("⚠️ Executor Agent: Calendar tools not available (package not installed)")
 
     llm = ChatOpenAI(model="gpt-4o-mini", api_key=api_key, temperature=0, max_tokens=4000)
     logger.info("LLM CONFIGURATION: ChatOpenAI gpt-4o-mini configured for EXECUTOR agent")
@@ -770,15 +816,14 @@ class MultiAgentSystem:
             self.manager_agent = build_manager_agent(self.memory)
             self.planner_agent = build_planner_agent(self.memory)
             self.executor_agent = build_executor_agent(self.memory)
-            print("✅ Multi-Agent System initialized successfully!")
-            print("🤖 Agents: Manager (Calendar Query) | Planner (Strategic Planning) | Executor (Calendar Execution)")
+            logger.info("Multi-Agent System initialized successfully")
         except Exception as e:
-            print(f"❌ Failed to initialize agents: {e}")
+            logger.error(f"Failed to initialize agents: {e}")
             raise
 
     def route_query(self, user_query: str) -> AgentType:
-        """Route query to appropriate agent based on intent."""
-        return classify_intent(user_query)
+        """Route query to appropriate agent based on intent with context awareness."""
+        return classify_intent(user_query, self.memory)
 
     def process_query(self, user_query: str) -> tuple[str, AgentType]:
         """Process query with appropriate agent."""
@@ -788,23 +833,21 @@ class MultiAgentSystem:
         agent_type = self.route_query(user_query)
 
         logger.info(f"AGENT SELECTION: {agent_type.value.upper()} AGENT selected for processing")
-        print(f"🎯 Intent classified as: {agent_type.value.upper()}")
-
+        
+        # Show clean user feedback instead of logging
+        agent_names = {'manager': 'Manager', 'planner': 'Planner', 'executor': 'Executor'}
+        agent_name = agent_names.get(agent_type.value, 'Unknown')
+        
         # Select appropriate agent
         if agent_type == AgentType.MANAGER:
             agent_executor = self.manager_agent
-            agent_name = "Manager"
             logger.info("MODULE USAGE: Loading MANAGER AGENT with calendar query tools")
         elif agent_type == AgentType.PLANNER:
             agent_executor = self.planner_agent
-            agent_name = "Planner"
             logger.info("MODULE USAGE: Loading PLANNER AGENT with RAG + calendar planning tools")
         else:  # AgentType.EXECUTOR
             agent_executor = self.executor_agent
-            agent_name = "Executor"
             logger.info("MODULE USAGE: Loading EXECUTOR AGENT with calendar creation tools")
-
-        print(f"🤖 Routing to {agent_name} Agent...")
 
         # Rebuild agent with updated memory context
         logger.info(f"CONTEXT LOADING: Rebuilding {agent_name} agent with updated conversation context")
@@ -827,18 +870,25 @@ class MultiAgentSystem:
             logger.info("MEMORY UPDATE: Storing planner results for potential executor access")
             self.memory.store_planner_result(response["output"])
 
-        # Extract tools used
+        # Extract tools used for logging
         tools_used = []
+        
         if "intermediate_steps" in response:
             for step in response["intermediate_steps"]:
                 if hasattr(step[0], 'tool'):
-                    tools_used.append(step[0].tool)
-                    logger.info(f"TOOL EXECUTION: {step[0].tool} tool was used by {agent_name} agent")
+                    tool_name = step[0].tool
+                    tools_used.append(tool_name)
+                    logger.info(f"TOOL EXECUTION: {tool_name} tool was used by {agent_name} agent")
 
         logger.info(f"RESPONSE GENERATED: {agent_name} agent completed processing")
 
-        # Add to memory with agent type
-        self.memory.add_turn(user_query, response["output"], tools_used, agent_type.value)
+        # Add to memory with agent type (no verification integration)
+        self.memory.add_turn(
+            user_query, 
+            response["output"], 
+            tools_used, 
+            agent_type.value
+        )
 
         # Add agent identification to response
         agent_icon = {'manager': '📅', 'planner': '🎯', 'executor': '✅'}.get(agent_type.value, '🤖')
@@ -847,6 +897,42 @@ class MultiAgentSystem:
         logger.info(f"FINAL RESPONSE: {agent_name} agent response prepared with identification")
 
         return identified_response, agent_type
+
+    def get_conversation_summary(self) -> str:
+        """Get a summary of the conversation session."""
+        if not self.conversation_history:
+            return "No conversation history available."
+
+        total_turns = len(self.conversation_history)
+        session_duration = datetime.datetime.now() - datetime.datetime.fromisoformat(self.session_start_time)
+
+        summary = f"""
+CONVERSATION SESSION SUMMARY:
+- Session started: {self.session_start_time}
+- Duration: {session_duration}
+- Total conversation turns: {total_turns}
+- Last activity: {self.conversation_history[-1]['timestamp'] if self.conversation_history else 'None'}
+"""
+
+        # Add key topics/themes if we had more advanced analysis
+        user_messages = [turn['user_message'] for turn in self.conversation_history]
+        if user_messages:
+            # Simple keyword extraction for topics
+            all_text = ' '.join(user_messages).lower()
+            topics = []
+            if 'schedule' in all_text or 'plan' in all_text:
+                topics.append('scheduling')
+            if 'study' in all_text or 'work' in all_text:
+                topics.append('work/study')
+            if 'calendar' in all_text or 'meeting' in all_text:
+                topics.append('calendar management')
+            if 'energy' in all_text or 'time' in all_text:
+                topics.append('time management')
+
+            if topics:
+                summary += f"- Topics discussed: {', '.join(set(topics))}\n"
+
+        return summary
 
 # ==============================================================================
 # END OF AGENTS MODULE

@@ -4,6 +4,8 @@
 
 This project implements an intelligent multi-agent calendar scheduling system designed to optimize personal time management through AI-driven decision making. The system integrates Retrieval-Augmented Generation (RAG) with Google Calendar API to provide personalized scheduling recommendations based on user energy patterns, project constraints, and real-time calendar availability.
 
+The system features a **clean separation** between the core scheduling functionality and the evaluation/verification system, allowing for independent operation and testing.
+
 ## System Architecture
 
 ### Multi-Agent Framework
@@ -14,6 +16,16 @@ The system employs three specialized agents that collaborate to handle schedulin
 - **Executor Agent**: Executes approved plans by creating calendar events
 
 Each agent follows a ReAct (Reasoning → Action → Response) framework, utilizing specialized tools for data retrieval and execution.
+
+### Standalone Evaluation System (Guardrails)
+The system includes a **completely separate** evaluation module for quality assurance and testing:
+
+- **Self-Evaluation Node**: Compares agent outputs against retrieved source material to detect hallucinations
+- **Confidence Scoring**: Provides Groundedness Score (0-1) representing the fraction of factual claims supported by evidence
+- **Hallucination Detection**: Flags unsupported claims and requests clarification when confidence is low
+- **Evidence Collection**: Gathers evidence from calendar tools, RAG retrievals, and user profile data
+- **JSON Export**: Saves detailed evaluation results to JSON files for later analysis and reference
+- **Independent Operation**: Runs separately from the main agent system without affecting user experience
 
 ### Technical Components
 
@@ -66,9 +78,45 @@ Each agent follows a ReAct (Reasoning → Action → Response) framework, utiliz
 
 ## Usage
 
-### Interactive Mode
+### Interactive Mode (Main System)
 ```bash
 python main.py interactive
+```
+
+Available commands in interactive mode:
+- `conversation summary` - Show conversation statistics
+- `help` - Display available commands
+
+**Clean User Experience**: The interactive mode provides a clean, user-friendly interface with minimal logging noise. All detailed logs are saved to files while the console shows only essential information and agent responses.
+
+### Standalone Evaluation System
+```bash
+python evaluation.py
+```
+
+This runs comprehensive verification tests with detailed reporting and saves results to JSON files in the `evaluation_results/` directory. The evaluation system operates independently from the main agent system.
+
+**Custom Evaluation Example**:
+```python
+from evaluation import evaluate_agent_responses
+
+test_cases = [
+    {
+        "name": "Calendar Query Test",
+        "response": "You have 2 meetings today...",
+        "agent_type": "manager",
+        "tools": ["calendar_search_events"],
+        "outputs": {"calendar_search_events": "Found 2 events..."},
+        "rag": []
+    }
+]
+
+results_file = evaluate_agent_responses(test_cases, "my_test_session")
+```
+
+### Setup Advanced RAG System
+```bash
+python main.py advanced-rag
 ```
 
 ### Generate Implementation Traces
@@ -77,6 +125,21 @@ python main.py traces
 ```
 
 ## Technical Implementation Details
+
+### System Architecture Overview
+
+The system is designed with **two independent components**:
+
+1. **Core Multi-Agent System** (`agents.py`, `main.py`): 
+   - Handles user interactions and scheduling requests
+   - Provides clean, fast responses without evaluation overhead
+   - Focuses on user experience and scheduling functionality
+
+2. **Standalone Evaluation System** (`evaluation.py`):
+   - Operates independently for quality assurance and testing
+   - Evaluates agent responses against evidence sources
+   - Saves detailed results to JSON files for analysis
+   - Used for system validation and compliance checking
 
 ### Tooling Rationale
 
@@ -107,6 +170,50 @@ The system implements two distinct RAG collections with different chunking strat
 - **Use Case**: Advanced scheduling with energy-aware optimization and constraint satisfaction
 
 **Chunking Justification**: The advanced collection preserves critical context relationships essential for agentic AI scheduling decisions, such as maintaining energy patterns linked to time slots and keeping decision heuristics as complete logical units.
+
+### Evaluation System Architecture
+
+The standalone evaluation system provides comprehensive quality assurance:
+
+#### JSON Output Structure
+Each evaluation session generates a structured JSON file containing:
+
+```json
+{
+  "session_id": "comprehensive_eval_20260204_225547",
+  "timestamp": "2026-02-04T22:56:14.767252",
+  "test_cases": [
+    {
+      "test_name": "High Groundedness Response",
+      "agent_type": "planner",
+      "agent_response": "Based on your calendar search...",
+      "tools_used": ["get_calendars_info", "calendar_search_events"],
+      "tool_outputs": {...},
+      "rag_retrievals": [...],
+      "verification_result": {
+        "groundedness_score": 0.85,
+        "supported_claims": [...],
+        "unsupported_claims": [...],
+        "confidence_level": "high",
+        "requires_clarification": false
+      }
+    }
+  ],
+  "summary_stats": {
+    "total_tests": 5,
+    "average_groundedness_score": 0.72,
+    "high_confidence_responses": 3,
+    "success_rate": 0.60
+  }
+}
+```
+
+#### Evaluation Workflow
+1. **Claim Extraction**: Identifies factual claims in agent responses
+2. **Evidence Collection**: Gathers supporting evidence from tools and RAG
+3. **Groundedness Assessment**: Evaluates claim support against evidence
+4. **Confidence Scoring**: Calculates 0-1 groundedness scores
+5. **JSON Export**: Saves detailed results for later analysis
 
 ### Reasoning Loops and Agent Coordination
 
@@ -164,9 +271,11 @@ Improved recommendation quality from 75% personalized suggestions to 95%+ by gua
 - **Reasoning Loops**: Multi-turn conversation memory with agent coordination
 
 ### Self-Evaluation Logic (20% rubric weight)
+- **Standalone Evaluation**: Separate evaluation system for quality assurance without affecting main system performance
 - **Hallucination Control**: Tool-based verification prevents fabricated information
 - **Verification Steps**: Calendar conflict checking and availability confirmation
 - **Fallback Logic**: Default routing to Manager Agent for ambiguous queries
+- **JSON Export**: Detailed evaluation results saved for analysis and compliance
 
 ## Performance Metrics
 
@@ -179,21 +288,49 @@ Improved recommendation quality from 75% personalized suggestions to 95%+ by gua
 
 ```
 my-life-in-blocks/
-├── main.py                 # Main entry point with CLI modes
-├── agents.py              # Multi-agent system implementation
-├── rag.py                 # RAG system setup and ingestion
-├── generate_traces.py     # Implementation trace generator
-├── profile.json          # User profile and preferences
-├── credentials.json      # Google Calendar API credentials
-├── .env                  # Environment variables
-├── chroma_db/           # Vector database storage
+├── main.py                    # Main entry point with CLI modes
+├── agents.py                  # Multi-agent system implementation (core system)
+├── rag.py                     # Basic RAG system setup
+├── advanced_rag.py           # Advanced semantic chunking RAG system
+├── evaluation.py             # Standalone evaluation and guardrails system
+├── example_evaluation.py     # Example usage of evaluation system
+├── generate_traces.py        # Implementation trace generator
+├── profile.json              # User profile and preferences
+├── credentials.json          # Google Calendar API credentials
+├── .env                      # Environment variables
+├── chroma_db/               # Basic vector database storage
+├── advanced_chroma_db/      # Advanced semantic chunking database
+├── evaluation_results/      # JSON evaluation results directory
 ├── implementation_trace.log  # Execution traces
-└── requirements.txt      # Python dependencies
+└── requirements.txt          # Python dependencies
 ```
 
 ## Team Contributions
 
-**Martin Koome**: Lead developer responsible for multi-agent architecture design, RAG system implementation, Google Calendar integration, and system testing. Developed the core agent logic, tool architecture, and failure analysis documentation.
+This project was developed collaboratively by two team members with distinct areas of expertise:
+
+**Martin Koome**: 
+- Lead developer responsible for multi-agent architecture design and implementation
+- Developed the core agent logic, tool architecture, and agent coordination system
+- Implemented Google Calendar integration and calendar management tools
+- Designed and implemented the conversation memory system
+- Conducted system testing, failure analysis, and performance optimization
+- Contributed to RAG system design and implementation
+
+**Mohamed Abdalla**:
+- RAG system specialist responsible for advanced retrieval-augmented generation implementation
+- Designed and implemented the advanced semantic chunking strategy
+- Developed the dual-collection RAG architecture with specialized chunking methods
+- Created the sophisticated metadata system for priority-based retrieval
+- Collaborated on agent evaluation and testing methodologies
+- Contributed to the overall system architecture and agent behavior optimization
+
+**Joint Contributions**:
+- Multi-agent system architecture and design
+- Agent evaluation methodology and testing framework
+- System integration and coordination between RAG and calendar components
+- Performance analysis and optimization strategies
+- Documentation and technical implementation details
 
 ## License
 

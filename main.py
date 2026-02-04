@@ -44,15 +44,19 @@ def interactive_mode():
     """Run the system in interactive mode."""
     print("\n🤖 My Life in Blocks - Interactive Mode")
     print("=" * 50)
-    print("Type your scheduling requests or 'quit' to exit")
-    print("Examples:")
-    print("  - 'What meetings do I have today?'")
-    print("  - 'Schedule a meeting with John tomorrow at 2 PM'")
-    print("  - 'Check my availability next week'")
+    print("Type your scheduling requests or commands:")
+    print("📅 Scheduling: 'What meetings do I have today?', 'Schedule meeting with John'")
+    print("❓ Help: 'help' for commands, 'quit' to exit")
     print("=" * 50)
 
     try:
         from agents import MultiAgentSystem
+        
+        # Suppress HTTP request logging for cleaner output
+        import logging
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("openai").setLevel(logging.WARNING)
+        
         system = MultiAgentSystem()
         print("✅ Multi-Agent System initialized successfully!")
         print("🤖 Agents: Manager (Calendar Query) | Planner (Strategic Planning) | Executor (Calendar Execution)")
@@ -67,10 +71,31 @@ def interactive_mode():
                 if user_input.lower() in ['quit', 'exit', 'q']:
                     print("👋 Goodbye!")
                     break
+                
+                # Handle special commands
+                if user_input.lower() in ['help', 'h']:
+                    print("\n📋 **AVAILABLE COMMANDS:**")
+                    print("📊 conversation summary - Show conversation statistics")
+                    print("❓ help - Show this help message")
+                    print("🚪 quit - Exit the system")
+                    print("\n📅 **SCHEDULING EXAMPLES:**")
+                    print("• 'What meetings do I have today?'")
+                    print("• 'Schedule a meeting with John tomorrow at 2 PM'")
+                    print("• 'Check my availability next week'")
+                    print("• 'Find time for a 1-hour meeting with Sarah'")
+                    continue
+                
+                if user_input.lower() in ['conversation summary', 'summary', 'stats']:
+                    print("\n" + system.get_conversation_summary())
+                    continue
 
-                print("🤖 Processing...")
+                # Show processing indicator
+                print("🤖 Processing your request...")
+                
+                # Process the query
                 response, agent_type = system.process_query(user_input)
 
+                # Clear the processing line and show response
                 print(f"\n{response}")
                 print("-" * 50)
 
@@ -121,6 +146,23 @@ def rag_setup():
     except Exception as e:
         print(f"❌ RAG setup failed: {e}")
 
+def advanced_rag_setup():
+    """Set up the advanced RAG system with semantic chunking."""
+    print("\n🧠 Advanced RAG System Setup")
+    print("=" * 50)
+
+    try:
+        import advanced_rag
+        print("✅ Advanced RAG system setup completed!")
+        print("📚 Advanced vector database created/updated in advanced_chroma_db/")
+        print("🎯 Semantic chunking strategy implemented")
+
+    except ImportError as e:
+        print(f"❌ Import error: {e}")
+        print("Please ensure advanced_rag.py is available")
+    except Exception as e:
+        print(f"❌ Advanced RAG setup failed: {e}")
+
 def main():
     """Main entry point."""
     print("🎯 My Life in Blocks - Multi-Agent Calendar Scheduling System")
@@ -130,9 +172,9 @@ def main():
     parser.add_argument(
         'mode',
         nargs='?',
-        choices=['interactive', 'traces', 'rag', 'check'],
+        choices=['interactive', 'traces', 'rag', 'advanced-rag', 'check'],
         default='interactive',
-        help='Mode to run: interactive (default), traces, rag, or check'
+        help='Mode to run: interactive (default), traces, rag, advanced-rag, or check'
     )
 
     args = parser.parse_args()
@@ -149,6 +191,8 @@ def main():
         trace_mode()
     elif args.mode == 'rag':
         rag_setup()
+    elif args.mode == 'advanced-rag':
+        advanced_rag_setup()
     elif args.mode == 'check':
         if check_requirements():
             print("\n✅ All system requirements met!")
