@@ -90,11 +90,23 @@ The system implements custom tools to address specific challenges in personalize
 
 ### Chunking and Retrieval Strategy
 
-The RAG system uses document chunking with:
+The system implements two distinct RAG collections with different chunking strategies:
+
+#### Collection 1: `agentic_career_brain` (Basic Chunking)
+- **Method**: Recursive Character Text Splitter
 - **Chunk Size**: 1000 characters with 200 character overlap
-- **Embedding Model**: OpenAI text-embedding-ada-002
-- **Search Parameters**: k=3 most relevant chunks retrieved per query
-- **Collection Strategy**: Single collection ("agentic_career_brain") for unified user profile access
+- **Strategy**: JSON key-based document creation with uniform splitting
+- **Use Case**: General profile retrieval and basic scheduling constraints
+
+#### Collection 2: `advanced_agentic_brain` (Advanced Semantic Chunking)
+- **Method**: Hybrid Semantic + Sliding Window Chunking
+- **Strategy**: Domain-specific chunking preserving context relationships
+- **Chunk Types**: 11 specialized types (energy_profile, daily_schedule, competency_domain, etc.)
+- **Metadata**: 14 fields including retrieval_priority, semantic_unit, chunk_type
+- **Context Preservation**: Energy-time relationships, condition-action pairs, skill-impact mappings
+- **Use Case**: Advanced scheduling with energy-aware optimization and constraint satisfaction
+
+**Chunking Justification**: The advanced collection preserves critical context relationships essential for agentic AI scheduling decisions, such as maintaining energy patterns linked to time slots and keeping decision heuristics as complete logical units.
 
 ### Reasoning Loops and Agent Coordination
 
