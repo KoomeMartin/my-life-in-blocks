@@ -150,8 +150,6 @@ embeddings/
 # Logs
 *.log
 logs/
-# Exception: Keep implementation trace for documentation
-!implementation_trace.log
 
 # OS generated files
 .DS_Store
