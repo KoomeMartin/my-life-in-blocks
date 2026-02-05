@@ -476,7 +476,7 @@ This project was developed collaboratively by two team members with distinct are
 - Contributed to RAG system design and implementation
 
 **Mohamed Awud**:
-- RAG system specialist responsible for advanced retrieval-augmented generation implementation
+- Responsible for advanced retrieval-augmented generation implementation
 - Designed and implemented the advanced semantic chunking strategy
 - Developed the dual-collection RAG architecture with specialized chunking methods
 - Created the sophisticated metadata system for priority-based retrieval
