@@ -407,14 +407,6 @@ While responses remain factually grounded (0.917 average groundedness), explicit
 Add explicit RAG consultation requirements to system prompts for queries containing keywords: "deadline", "due", "skill", "proficient", "competency".
 
 
-- **Continuous Validation**: Evaluation results saved to  for historical tracking
-
-**Key Findings from Evaluation**:
-- **Calendar Tool Integration**: 100% pass rate - excellent real-time calendar data retrieval
-- **Multi-Tool Coordination**: 100% pass rate - successful integration of RAG + calendar + datetime tools
-- **Time Logic**: 80% pass rate - one edge case with partial overlap detection needs refinement
-- **RAG Retrieval**: 60% pass rate - agents sometimes infer from context instead of explicit RAG queries
-
 ## Performance Metrics
 
 ### System Performance
