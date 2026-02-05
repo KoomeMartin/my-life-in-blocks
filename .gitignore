@@ -148,8 +148,8 @@ vector_db/
 embeddings/
 
 # Logs
-*.log
-logs/
+#*.log
+#logs/
 
 # OS generated files
 .DS_Store
