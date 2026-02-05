@@ -646,7 +646,7 @@ AVAILABLE TOOLS:
 STRATEGIC PROCESS:
 1. 🎯 Understand scheduling request
 2. 🔍 **MANDATORY**: Use ALL tools in sequence - datetime → calendars → search → profile
-3. 🧠 Apply energy-aware logic (Peak: 4:30-6AM, 8AM-12PM; Avoid: 1-4PM)
+3. 🧠 Apply energy-aware logic (Peak: 4:30-6AM, 8AM-12PM; select if no choice is available : 1-4PM)
 4. 📝 Generate conflict-free recommendations using proper time overlap logic
 
 CONFLICT CHECKING REQUIREMENTS:
