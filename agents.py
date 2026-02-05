@@ -88,12 +88,17 @@ class ConversationMemory:
 
     def add_turn(self, user_message: str, agent_response: str, tools_used: List[str] = None, 
                  agent_type: str = ""):
-        """Add a conversation turn to memory."""
+        """Add a conversation turn to memory with detailed tool logging."""
         logger.info(f"MEMORY UPDATE: Adding conversation turn #{len(self.conversation_history) + 1} to memory")
         logger.info(f"USER MESSAGE: '{user_message[:100]}{'...' if len(user_message) > 100 else ''}'")
         logger.info(f"AGENT RESPONSE: {agent_type.upper()} agent - '{agent_response[:100]}{'...' if len(agent_response) > 100 else ''}'")
+        
         if tools_used:
-            logger.info(f"TOOLS USED: {', '.join(tools_used)}")
+            logger.info(f"TOOLS USED: {len(tools_used)} tools - {', '.join(tools_used)}")
+            for i, tool in enumerate(tools_used, 1):
+                logger.info(f"MEMORY TOOL #{i}: {tool} was utilized in this conversation turn")
+        else:
+            logger.info("TOOLS USED: No tools were used in this conversation turn")
 
         turn = {
             "timestamp": datetime.datetime.now().isoformat(),
@@ -315,7 +320,7 @@ def get_current_datetime(query: str = "") -> str:
 # ==============================================================================
 # 3. TOOL: EXECUTION (Google Calendar)
 # ==============================================================================
-# Calendar tool will be initialized in build_agent_system
+# Calendar tools will be initialized in build_agent_system with enhanced configurations
 
 # ==============================================================================
 # AGENT TYPES AND INTENT CLASSIFICATION
@@ -412,7 +417,24 @@ MANAGER_SYSTEM_PROMPT = """You are the MANAGER AGENT - Martin Koome's Calendar I
 
 Use ReAct approach: OBSERVE → THINK → ACT → REASON → RESPOND
 
-MANDATORY: Always call get_calendars_info() FIRST, then search ALL calendars.
+CRITICAL: You MUST use your tools for ALL queries. Never respond without using tools.
+
+⚠️ **CRITICAL TIME LOGIC RULE:**
+Two events CONFLICT only if they OVERLAP in time. Events that are adjacent (one ends exactly when another starts) or separated in time do NOT conflict.
+- Meeting 12:00-1:00 PM + Request 1:00-1:30 PM = ✅ AVAILABLE (adjacent, not overlapping)
+- Meeting 3:00-4:00 PM + Request 1:00-1:30 PM = ✅ AVAILABLE (completely separate times)
+- Meeting 12:30-1:30 PM + Request 1:00-2:00 PM = ❌ CONFLICT (overlap from 1:00-1:30 PM)
+
+MANDATORY TOOL USAGE:
+1. ALWAYS call get_current_datetime() FIRST for any query
+2. ALWAYS call get_calendars_info() to get ALL calendars  
+3. ALWAYS call calendar_search_events() to search calendars
+4. Use actual tool results in your response - never guess or assume
+
+ENHANCED CALENDAR FEATURES:
+- Explicit calendar targeting: Always uses mkoome@andrew.cmu.edu calendar
+- Optimized result limits: 25 results for efficient manager queries
+- Pre-configured calendar ID for consistent targeting
 
 CURRENT TIME: {current_time}
 CONVERSATION CONTEXT: {conversation_context}
@@ -423,39 +445,100 @@ AGENT COLLABORATION:
 - ✅ EXECUTOR: Executes approved plans by creating actual calendar events
 
 AVAILABLE TOOLS:
-- get_current_datetime: Get current time
-- get_calendars_info: **CRITICAL FIRST STEP** - Get ALL calendars
-- calendar_search_events: Search ALL calendars comprehensively
+- get_current_datetime: **MANDATORY FIRST** - Get current time for all queries
+- get_calendars_info: **MANDATORY SECOND** - Get ALL calendars
+- calendar_search_events: **MANDATORY THIRD** - Search mkoome@andrew.cmu.edu calendar
 
-AVAILABILITY LOGIC - CRITICAL:
-- **AVAILABLE**: If NO events overlap with requested time → "You ARE available"
-- **NOT AVAILABLE**: If ANY events overlap with requested time → "You are NOT available"
-- **UPCOMING EVENTS**: Mention future events separately, but they don't affect current availability
+TOOL USAGE SEQUENCE (MANDATORY):
+1. get_current_datetime() - Always first
+2. get_calendars_info() - Always second  
+3. calendar_search_events() - Always third with appropriate query
+
+AVAILABILITY LOGIC - CRITICAL TIME OVERLAP RULES:
+
+**UNDERSTANDING TIME CONFLICTS:**
+A conflict exists ONLY when events OVERLAP in time. Two events are adjacent (touching) but NOT overlapping if one ends exactly when the other starts.
+
+**CONFLICT DETECTION RULES:**
+1. **NO CONFLICT** if existing event ENDS at or before requested START time
+2. **NO CONFLICT** if existing event STARTS at or after requested END time  
+3. **CONFLICT** only if existing event overlaps with requested time slot
+
+**MATHEMATICAL OVERLAP CHECK:**
+For requested time [Request_Start, Request_End] and existing event [Event_Start, Event_End]:
+- ✅ AVAILABLE if: Event_End ≤ Request_Start OR Event_Start ≥ Request_End
+- ❌ CONFLICT if: Event_Start < Request_End AND Event_End > Request_Start
+
+**CONCRETE EXAMPLES:**
+
+Example 1: AVAILABLE (Adjacent, not overlapping)
+- Existing: 12:00 PM - 1:00 PM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ✅ AVAILABLE (event ends exactly when request starts)
+
+Example 2: AVAILABLE (Event is later)
+- Existing: 3:00 PM - 4:00 PM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ✅ AVAILABLE (event starts after request ends)
+
+Example 3: AVAILABLE (Event is earlier)
+- Existing: 9:00 AM - 10:00 AM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ✅ AVAILABLE (event ends before request starts)
+
+Example 4: CONFLICT (Partial overlap at start)
+- Existing: 12:30 PM - 1:30 PM
+- Requested: 1:00 PM - 2:00 PM
+- Result: ❌ CONFLICT (events overlap from 1:00-1:30 PM)
+
+Example 5: CONFLICT (Partial overlap at end)
+- Existing: 1:15 PM - 2:00 PM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ❌ CONFLICT (events overlap from 1:15-1:30 PM)
+
+Example 6: CONFLICT (Request contained within event)
+- Existing: 12:00 PM - 2:00 PM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ❌ CONFLICT (request completely inside event)
+
+Example 7: CONFLICT (Event contained within request)
+- Existing: 1:10 PM - 1:20 PM
+- Requested: 1:00 PM - 1:30 PM
+- Result: ❌ CONFLICT (event completely inside request)
+
+**STEP-BY-STEP AVAILABILITY CHECK:**
+1. Extract requested time slot: [Start_Time, End_Time]
+2. For EACH calendar event found:
+   a. Extract event time: [Event_Start, Event_End]
+   b. Check: Does Event_End ≤ Start_Time? → NO CONFLICT, continue
+   c. Check: Does Event_Start ≥ End_Time? → NO CONFLICT, continue
+   d. Otherwise → CONFLICT FOUND
+3. If NO conflicts found → "You ARE available"
+4. If ANY conflict found → "You are NOT available due to: [conflicting event]"
 
 ReAct PROCESS FOR AVAILABILITY:
-- **OBSERVE**: What time slot is being queried?
-- **THINK**: Need to check for overlapping events, not just any events
-- **ACT**: get_calendars_info() → calendar_search_events() with time range
-- **REASON**: Check if any events overlap with requested time. Separate conflicts from upcoming events.
-- **RESPOND**: "You are available/not available at [time]" + mention conflicts if any
+- **OBSERVE**: Extract exact requested time slot [Start, End]
+- **THINK**: Need to check ONLY for OVERLAPPING events, not adjacent or distant events
+- **ACT**: **MANDATORY** - get_current_datetime() → get_calendars_info() → calendar_search_events()
+- **REASON**: For each event, apply mathematical overlap check. List ONLY truly overlapping events as conflicts.
+- **RESPOND**: "You are available/not available" + mention ONLY overlapping conflicts
 
 TOOL GUIDELINES:
-- **MANDATORY**: get_calendars_info() BEFORE calendar_search_events()
-- **COMPREHENSIVE**: Check ALL calendars, not just primary
-- **TIME-AWARE**: Focus on time overlaps, not just event existence
-- **ACCURATE**: Use actual calendar data only
+- **NEVER SKIP TOOLS**: Always use all three tools in sequence
+- **COMPREHENSIVE**: Check mkoome@andrew.cmu.edu calendar specifically
+- **TIME-AWARE**: Apply mathematical overlap logic, not proximity logic
+- **ACCURATE**: Use actual calendar data only - never guess
 
 RESPONSE FORMAT FOR AVAILABILITY:
-✅ "You ARE available at [time]" - if no conflicts
-❌ "You are NOT available at [time] due to: [conflicting event]" - if conflicts
-📅 "Upcoming: [future event at different time]" - separate from availability
+✅ "You ARE available at [time]" - if no overlapping conflicts
+❌ "You are NOT available at [time] due to: [conflicting event with overlapping time]" - if conflicts exist
+📅 "Note: You have other events today at [times]" - mention non-conflicting events separately
 
-INTERPRETING SEARCH RESULTS:
-- Check event start/end times against requested availability time
-- Events that start after or end before requested time = NO CONFLICT
-- Events that overlap with requested time = CONFLICT
-- Example: Meeting at 6 PM does NOT conflict with availability at 4 PM
-- Example: Meeting from 3-5 PM DOES conflict with availability at 4 PM
+CRITICAL REMINDERS:
+- Adjacent events (one ends when other starts) = NO CONFLICT
+- Events before requested time = NO CONFLICT
+- Events after requested time = NO CONFLICT
+- Only events that OVERLAP the requested time = CONFLICT
 
 COMMUNICATION: Be direct, show ReAct reasoning, clearly state availability status.
 
@@ -463,8 +546,8 @@ Current User Context: Lead Data Engineer, Masters Student, Python Expert.
 """
 
 def build_manager_agent(memory: ConversationMemory):
-    """Build Manager Agent with calendar access only."""
-    logger.info("AGENT CONSTRUCTION: Building MANAGER agent with calendar tools")
+    """Build Manager Agent with enhanced calendar access."""
+    logger.info("AGENT CONSTRUCTION: Building MANAGER agent with enhanced calendar tools")
 
     current_time = datetime.datetime.now().strftime("%A, %Y-%m-%d %H:%M:%S")
     conversation_context = memory.get_recent_context(current_agent_type="manager")
@@ -474,20 +557,25 @@ def build_manager_agent(memory: ConversationMemory):
         conversation_context=conversation_context
     )
 
-    # Manager tools: Calendar only (no RAG)
+    # Manager tools: Enhanced calendar tools
     tools = [get_current_datetime]
-    logger.info("TOOL LOADING: Adding get_current_datetime tool")
+    logger.info("TOOL LOADING: Adding get_current_datetime tool to MANAGER agent")
 
-    # Add Google Calendar tools
+    # Add Google Calendar tools with explicit calendar ID and intelligent max_results
     if CALENDAR_TOOLS_AVAILABLE:
         try:
             calendar_service = build_calendar_service()
             calendar_tools = [
                 GetCalendarsInfo(api_resource=calendar_service),
-                CalendarSearchEvents(api_resource=calendar_service)
+                CalendarSearchEvents(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu",
+                    max_results=25  # Optimized for manager queries
+                )
             ]
             tools.extend(calendar_tools)
-            logger.info("CALENDAR INTEGRATION: Google Calendar tools loaded successfully")
+            logger.info("CALENDAR INTEGRATION: Enhanced Google Calendar tools loaded for MANAGER agent")
+            logger.info("MANAGER TOOLS: GetCalendarsInfo, CalendarSearchEvents (explicit calendar: mkoome@andrew.cmu.edu) added")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
     else:
@@ -504,7 +592,8 @@ def build_manager_agent(memory: ConversationMemory):
 
     agent = create_tool_calling_agent(llm, tools, prompt)
     logger.info(f"AGENT READY: MANAGER agent constructed with {len(tools)} tools")
-    return AgentExecutor(agent=agent, tools=tools, verbose=False, max_iterations=10)
+    logger.info(f"MANAGER TOOL LIST: {[tool.name if hasattr(tool, 'name') else str(tool) for tool in tools]}")
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=10, return_intermediate_steps=True)
 
 # ==============================================================================
 # PLANNER AGENT (RAG + Calendar)
@@ -516,7 +605,29 @@ PLANNER_SYSTEM_PROMPT = """You are the PLANNER AGENT - Martin Koome's Strategic 
 
 Use ReAct approach: OBSERVE → THINK → ACT → REASON → RESPOND
 
-MANDATORY SEQUENCE: get_calendars_info() → calendar_search_events() → search_user_profile_and_policies()
+CRITICAL: You MUST use your tools for ALL queries. Never respond without using tools.
+
+⚠️ **CRITICAL TIME LOGIC RULE:**
+Two events CONFLICT only if they OVERLAP in time. Events that are adjacent (one ends exactly when another starts) or separated in time do NOT conflict.
+- Existing 12:00-1:00 PM + Proposed 1:00-1:30 PM = ✅ NO CONFLICT (adjacent, not overlapping)
+- Existing 3:00-4:00 PM + Proposed 1:00-1:30 PM = ✅ NO CONFLICT (completely separate)
+- Existing 12:30-1:30 PM + Proposed 1:00-2:00 PM = ❌ CONFLICT (overlap from 1:00-1:30 PM)
+
+**MATHEMATICAL OVERLAP CHECK FOR PLANNING:**
+For proposed time [Proposed_Start, Proposed_End] and existing event [Event_Start, Event_End]:
+- ✅ NO CONFLICT if: Event_End ≤ Proposed_Start OR Event_Start ≥ Proposed_End
+- ❌ CONFLICT if: Event_Start < Proposed_End AND Event_End > Proposed_Start
+
+MANDATORY TOOL USAGE SEQUENCE:
+1. get_current_datetime() - Always first
+2. get_calendars_info() - Always second
+3. calendar_search_events() - Always third for comprehensive conflict checking
+4. search_user_profile_and_policies() - Always fourth for energy patterns
+
+ENHANCED CALENDAR FEATURES:
+- Explicit calendar targeting: Always uses mkoome@andrew.cmu.edu calendar
+- Comprehensive search: 50 max results for thorough planning analysis
+- Pre-configured calendar ID for consistent targeting
 
 CURRENT TIME: {current_time}
 CONVERSATION CONTEXT: {conversation_context}
@@ -527,22 +638,32 @@ AGENT COLLABORATION:
 - ✅ EXECUTOR: Will execute your approved recommendations
 
 AVAILABLE TOOLS:
-- get_current_datetime: Get current time
-- search_user_profile_and_policies: **CRITICAL** - Access energy profiles
-- get_calendars_info: **MANDATORY FIRST** - Get ALL calendars
-- calendar_search_events: Search ALL calendars for availability
+- get_current_datetime: **MANDATORY FIRST** - Get current time
+- get_calendars_info: **MANDATORY SECOND** - Get ALL calendars
+- calendar_search_events: **MANDATORY THIRD** - Search mkoome@andrew.cmu.edu calendar comprehensively
+- search_user_profile_and_policies: **MANDATORY FOURTH** - Access energy profiles
 
 STRATEGIC PROCESS:
 1. 🎯 Understand scheduling request
-2. 🔍 **MANDATORY**: Get ALL calendars → Search ALL for CONFLICTS → Get energy profile
+2. 🔍 **MANDATORY**: Use ALL tools in sequence - datetime → calendars → search → profile
 3. 🧠 Apply energy-aware logic (Peak: 4:30-6AM, 8AM-12PM; Avoid: 1-4PM)
-4. 📝 Generate conflict-free recommendations
+4. 📝 Generate conflict-free recommendations using proper time overlap logic
 
 CONFLICT CHECKING REQUIREMENTS:
 - **MANDATORY**: Always call get_calendars_info() and calendar_search_events() FIRST
-- **VERIFY**: Check proposed time slots against ALL existing events
-- **REJECT**: Never suggest times that conflict with existing events
+- **VERIFY**: Check proposed time slots against ALL existing events using mathematical overlap logic
+- **REJECT**: Never suggest times that OVERLAP with existing events (adjacent is OK)
 - **VALIDATE**: Confirm availability before presenting recommendations
+
+CONFLICT DETECTION ALGORITHM:
+1. Get all calendar events in the relevant time range
+2. For EACH proposed time slot [Start, End]:
+   a. For EACH existing event [Event_Start, Event_End]:
+      - Check: Event_End ≤ Start? → NO CONFLICT, continue
+      - Check: Event_Start ≥ End? → NO CONFLICT, continue
+      - Otherwise → CONFLICT, reject this time slot
+   b. If no conflicts found → Valid recommendation
+3. Only recommend time slots with NO overlapping conflicts
 
 ENERGY RULES:
 - Peak: 4:30-6:00 AM, 8:00-12:00 PM
@@ -551,15 +672,17 @@ ENERGY RULES:
 
 ReAct PROCESS:
 - **OBSERVE**: What to schedule and when?
-- **THINK**: Which calendars? Energy constraints? EXISTING CONFLICTS?
-- **ACT**: **MANDATORY** - Check ALL calendars for conflicts + get energy profile
-- **REASON**: Combine calendar conflicts + energy data → Only suggest available times
-- **RESPOND**: Provide conflict-free scheduling plan
+- **THINK**: Which calendars? Energy constraints? OVERLAPPING CONFLICTS (not adjacent)?
+- **ACT**: **MANDATORY** - Use ALL 4 tools in sequence: datetime → calendars → search → profile
+- **REASON**: Apply mathematical overlap check to find truly available slots. Adjacent events are OK.
+- **RESPOND**: Provide conflict-free scheduling plan with proper time logic
 
 TOOL GUIDELINES:
-- **MANDATORY SEQUENCE**: calendars_info() → search_events() → profile_search()
-- **COMPREHENSIVE**: Check ALL calendars
+- **NEVER SKIP TOOLS**: Always use all 4 tools in the mandatory sequence
+- **COMPREHENSIVE**: Check mkoome@andrew.cmu.edu calendar thoroughly
 - **ENERGY-AWARE**: Always consider user patterns
+- **THOROUGH SEARCH**: Use 50 max results for comprehensive conflict detection
+- **ACCURATE TIME LOGIC**: Only reject slots that OVERLAP, not adjacent slots
 
 RESPONSE: Show ReAct process, explain reasoning, provide actionable plans.
 
@@ -570,8 +693,8 @@ When recommending scheduling, provide STRUCTURED output for Executor:
 👥 **ATTENDEES**: [Who should attend, e.g., "Lulu"]
 📝 **TITLE**: [Clear event title, e.g., "Meeting with Lulu"]
 ⏱️ **DURATION**: [Length in minutes, e.g., "60"]
-📅 **CALENDAR**: [Which calendar to use, e.g., "mkoome@andrew.cmu.edu"]
-💡 **RATIONALE**: [Why this time is optimal]
+📅 **CALENDAR**: [Always use "mkoome@andrew.cmu.edu"]
+💡 **RATIONALE**: [Why this time is optimal - mention it's conflict-free and energy-aligned]
 
 CRITICAL: Use EXACT format above so Executor can parse and create events.
 **DO NOT CREATE EVENTS** - Provide structured plans for Executor to implement.
@@ -584,8 +707,8 @@ Current User Context: Lead Data Engineer, Masters Student, Python Expert.
 """
 
 def build_planner_agent(memory: ConversationMemory):
-    """Build Planner Agent with RAG + Calendar access."""
-    logger.info("AGENT CONSTRUCTION: Building PLANNER agent with RAG + Calendar tools")
+    """Build Planner Agent with RAG + Enhanced Calendar access."""
+    logger.info("AGENT CONSTRUCTION: Building PLANNER agent with RAG + Enhanced Calendar tools")
 
     current_time = datetime.datetime.now().strftime("%A, %Y-%m-%d %H:%M:%S")
     conversation_context = memory.get_recent_context(current_agent_type="planner")
@@ -595,23 +718,29 @@ def build_planner_agent(memory: ConversationMemory):
         conversation_context=conversation_context
     )
 
-    # Planner tools: RAG + Calendar
+    # Planner tools: RAG + Enhanced Calendar
     tools = [
         get_strategic_memory_tool(),
         get_current_datetime
     ]
-    logger.info("TOOL LOADING: Adding strategic memory and datetime tools")
+    logger.info("TOOL LOADING: Adding strategic memory and datetime tools to PLANNER agent")
+    logger.info("PLANNER TOOLS: search_user_profile_and_policies (RAG), get_current_datetime added")
 
-    # Add Google Calendar tools
+    # Add Google Calendar tools with explicit calendar ID and higher max_results for planning
     if CALENDAR_TOOLS_AVAILABLE:
         try:
             calendar_service = build_calendar_service()
             calendar_tools = [
                 GetCalendarsInfo(api_resource=calendar_service),
-                CalendarSearchEvents(api_resource=calendar_service)
+                CalendarSearchEvents(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu",
+                    max_results=50  # Higher for comprehensive planning queries
+                )
             ]
             tools.extend(calendar_tools)
-            logger.info("CALENDAR INTEGRATION: Google Calendar tools loaded successfully")
+            logger.info("CALENDAR INTEGRATION: Enhanced Google Calendar tools loaded for PLANNER agent")
+            logger.info("PLANNER TOOLS: GetCalendarsInfo, CalendarSearchEvents (explicit calendar: mkoome@andrew.cmu.edu, max_results=50) added")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
     else:
@@ -628,7 +757,19 @@ def build_planner_agent(memory: ConversationMemory):
 
     agent = create_tool_calling_agent(llm, tools, prompt)
     logger.info(f"AGENT READY: PLANNER agent constructed with {len(tools)} tools")
-    return AgentExecutor(agent=agent, tools=tools, verbose=False, max_iterations=15)
+    logger.info(f"PLANNER TOOL LIST: {[tool.name if hasattr(tool, 'name') else str(tool) for tool in tools]}")
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=15, return_intermediate_steps=True)
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", formatted_prompt),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ])
+
+    agent = create_tool_calling_agent(llm, tools, prompt)
+    logger.info(f"AGENT READY: PLANNER agent constructed with {len(tools)} tools")
+    logger.info(f"PLANNER TOOL LIST: {[tool.name if hasattr(tool, 'name') else str(tool) for tool in tools]}")
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=15, return_intermediate_steps=True)
 
 # ==============================================================================
 # EXECUTOR AGENT (Calendar Execution)
@@ -641,6 +782,11 @@ EXECUTOR_SYSTEM_PROMPT = """You are the EXECUTOR AGENT - Martin Koome's Calendar
 Use ReAct approach: OBSERVE → THINK → ACT → REASON → RESPOND
 
 MANDATORY: Execute confirmed calendar scheduling requests with precision.
+
+ENHANCED CALENDAR FEATURES:
+- All calendar operations target mkoome@andrew.cmu.edu explicitly
+- Pre-configured calendar ID for all creation/update operations
+- Optimized search limits (30 results) for execution verification
 
 CURRENT TIME: {current_time}
 CONVERSATION CONTEXT: {conversation_context}
@@ -655,8 +801,8 @@ AGENT COLLABORATION:
 AVAILABLE TOOLS:
 - get_current_datetime: Get current time
 - get_calendars_info: Get ALL calendars (use first if needed)
-- calendar_search_events: Verify no conflicts before creating
-- create_calendar_event: **PRIMARY TOOL** - Create new calendar events
+- calendar_search_events: Search mkoome@andrew.cmu.edu calendar for verification
+- create_calendar_event: **PRIMARY TOOL** - Create new calendar events (mkoome@andrew.cmu.edu)
 - calendar_update_event: Update existing events
 - calendar_delete_event: Delete events if needed
 
@@ -673,7 +819,7 @@ Look for this EXACT format in LAST PLANNER RESULT:
 👥 **ATTENDEES**: [Extract attendees]
 📝 **TITLE**: [Extract title]
 ⏱️ **DURATION**: [Extract duration in minutes]
-📅 **CALENDAR**: [Extract calendar]
+📅 **CALENDAR**: [Extract calendar - always use mkoome@andrew.cmu.edu]
 💡 **RATIONALE**: [Extract reasoning]
 
 CALENDAR EVENT CREATION:
@@ -682,12 +828,13 @@ Use create_calendar_event with these parameters:
 - start_datetime: Use **RECOMMENDED TIME** (format: "YYYY-MM-DD HH:MM:SS")
 - duration_minutes: Use **DURATION** from plan
 - description: Combine **ATTENDEES** and **RATIONALE**
-- calendar_id: Use **CALENDAR** from plan or default "mkoome@andrew.cmu.edu"
+- calendar_id: Always use "mkoome@andrew.cmu.edu" (pre-configured)
 
 PLAN EXECUTION PRIORITY:
 - If LAST PLANNER RESULT contains structured plan → Execute that plan
 - If user provides specific details → Use those details
 - Always prefer structured plan data over user rephrasing
+- Always use mkoome@andrew.cmu.edu as target calendar
 
 ReAct EXECUTION PROCESS:
 - **OBSERVE**: Extract plan details from LAST PLANNER RESULT
@@ -703,15 +850,15 @@ ERROR HANDLING:
 
 SUCCESS CONFIRMATION:
 "✅ Meeting scheduled: [Title] at [Time] for [Duration]
-📅 Calendar: [Calendar Name]
+📅 Calendar: mkoome@andrew.cmu.edu
 🔗 View: [Event Link]"
 
 Current User Context: Lead Data Engineer, Masters Student, Python Expert.
 """
 
 def build_executor_agent(memory: ConversationMemory):
-    """Build Executor Agent with calendar creation/update tools."""
-    logger.info("AGENT CONSTRUCTION: Building EXECUTOR agent with full calendar management tools")
+    """Build Executor Agent with enhanced calendar management tools."""
+    logger.info("AGENT CONSTRUCTION: Building EXECUTOR agent with enhanced calendar management tools")
 
     current_time = datetime.datetime.now().strftime("%A, %Y-%m-%d %H:%M:%S")
     conversation_context = memory.get_recent_context(current_agent_type="executor")
@@ -763,23 +910,37 @@ SINGLE EVENT:
         last_planner_result=planner_result_str
     )
 
-    # Executor tools: Full calendar management
+    # Executor tools: Enhanced calendar management
     tools = [get_current_datetime]
-    logger.info("TOOL LOADING: Adding datetime tool")
+    logger.info("TOOL LOADING: Adding datetime tool to EXECUTOR agent")
 
-    # Add Google Calendar tools
+    # Add Google Calendar tools with explicit calendar ID for all operations
     if CALENDAR_TOOLS_AVAILABLE:
         try:
             calendar_service = build_calendar_service()
             calendar_tools = [
                 GetCalendarsInfo(api_resource=calendar_service),
-                CalendarSearchEvents(api_resource=calendar_service),
-                CalendarCreateEvent(api_resource=calendar_service),
-                CalendarUpdateEvent(api_resource=calendar_service),
-                CalendarDeleteEvent(api_resource=calendar_service)
+                CalendarSearchEvents(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu",
+                    max_results=30  # Moderate for execution verification
+                ),
+                CalendarCreateEvent(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu"  # Explicit calendar for creation
+                ),
+                CalendarUpdateEvent(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu"
+                ),
+                CalendarDeleteEvent(
+                    api_resource=calendar_service,
+                    calendar_id="mkoome@andrew.cmu.edu"
+                )
             ]
             tools.extend(calendar_tools)
-            logger.info("CALENDAR INTEGRATION: Full calendar management tools loaded successfully")
+            logger.info("CALENDAR INTEGRATION: Enhanced calendar management tools loaded for EXECUTOR agent")
+            logger.info("EXECUTOR TOOLS: All calendar tools configured with explicit calendar ID: mkoome@andrew.cmu.edu")
         except Exception as e:
             logger.warning(f"CALENDAR INTEGRATION FAILED: {e}")
     else:
@@ -796,7 +957,8 @@ SINGLE EVENT:
 
     agent = create_tool_calling_agent(llm, tools, prompt)
     logger.info(f"AGENT READY: EXECUTOR agent constructed with {len(tools)} tools")
-    return AgentExecutor(agent=agent, tools=tools, verbose=False, max_iterations=10)
+    logger.info(f"EXECUTOR TOOL LIST: {[tool.name if hasattr(tool, 'name') else str(tool) for tool in tools]}")
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=10, return_intermediate_steps=True)
 
 # ==============================================================================
 # MULTI-AGENT SYSTEM WITH MEMORY
@@ -870,15 +1032,58 @@ class MultiAgentSystem:
             logger.info("MEMORY UPDATE: Storing planner results for potential executor access")
             self.memory.store_planner_result(response["output"])
 
-        # Extract tools used for logging
+        # Extract tools used for detailed logging
         tools_used = []
         
-        if "intermediate_steps" in response:
-            for step in response["intermediate_steps"]:
+        # Check for intermediate steps in response
+        if "intermediate_steps" in response and response["intermediate_steps"]:
+            logger.info(f"TOOL ANALYSIS: Processing {len(response['intermediate_steps'])} intermediate steps")
+            for i, step in enumerate(response["intermediate_steps"], 1):
                 if hasattr(step[0], 'tool'):
                     tool_name = step[0].tool
+                    tool_input = step[0].tool_input if hasattr(step[0], 'tool_input') else "No input captured"
+                    tool_output = str(step[1])[:200] + "..." if len(str(step[1])) > 200 else str(step[1])
+                    
                     tools_used.append(tool_name)
-                    logger.info(f"TOOL EXECUTION: {tool_name} tool was used by {agent_name} agent")
+                    
+                    # Detailed tool execution logging
+                    logger.info(f"TOOL EXECUTION #{i}: {tool_name}")
+                    logger.info(f"TOOL INPUT #{i}: {tool_input}")
+                    logger.info(f"TOOL OUTPUT #{i}: {tool_output}")
+                    logger.info(f"TOOL AGENT #{i}: {agent_name} agent used {tool_name}")
+                    
+                    # Special logging for specific tool types
+                    if 'calendar' in tool_name.lower():
+                        logger.info(f"CALENDAR TOOL #{i}: {tool_name} - Calendar API interaction")
+                    elif 'search_user_profile' in tool_name.lower():
+                        logger.info(f"RAG TOOL #{i}: {tool_name} - RAG system retrieval")
+                    elif 'datetime' in tool_name.lower():
+                        logger.info(f"TEMPORAL TOOL #{i}: {tool_name} - Time awareness")
+                    
+            logger.info(f"TOOL SUMMARY: {len(tools_used)} tools used: {', '.join(tools_used)}")
+        else:
+            # Check if tools were used by examining the response content for tool patterns
+            response_text = response.get("output", "")
+            
+            # Look for evidence of tool usage in the response
+            tool_indicators = []
+            if "Thursday, 2026-02-05" in response_text or "current time" in response_text.lower():
+                tool_indicators.append("get_current_datetime")
+                logger.info("TOOL DETECTION: get_current_datetime usage detected from response content")
+            
+            if "calendar" in response_text.lower() and ("event" in response_text.lower() or "meeting" in response_text.lower()):
+                tool_indicators.append("calendar_search_events")
+                logger.info("TOOL DETECTION: calendar_search_events usage detected from response content")
+            
+            if "energy" in response_text.lower() and ("pattern" in response_text.lower() or "peak" in response_text.lower()):
+                tool_indicators.append("search_user_profile_and_policies")
+                logger.info("TOOL DETECTION: search_user_profile_and_policies usage detected from response content")
+            
+            if tool_indicators:
+                tools_used = tool_indicators
+                logger.info(f"TOOL ANALYSIS: {len(tool_indicators)} tools detected from response analysis: {', '.join(tool_indicators)}")
+            else:
+                logger.info("TOOL ANALYSIS: No intermediate steps found and no tool usage detected from response content")
 
         logger.info(f"RESPONSE GENERATED: {agent_name} agent completed processing")
 

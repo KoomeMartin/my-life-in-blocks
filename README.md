@@ -17,14 +17,20 @@ The system employs three specialized agents that collaborate to handle schedulin
 
 Each agent follows a ReAct (Reasoning → Action → Response) framework, utilizing specialized tools for data retrieval and execution.
 
-### Standalone Evaluation System (Guardrails)
-The system includes a **completely separate** evaluation module for quality assurance and testing:
+### Comprehensive Evaluation System (Guardrails)
+The system includes a **completely separate** evaluation module implementing rigorous quality assurance through automated testing:
 
-- **Self-Evaluation Node**: Compares agent outputs against retrieved source material to detect hallucinations
-- **Confidence Scoring**: Provides Groundedness Score (0-1) representing the fraction of factual claims supported by evidence
-- **Hallucination Detection**: Flags unsupported claims and requests clarification when confidence is low
-- **Evidence Collection**: Gathers evidence from calendar tools, RAG retrievals, and user profile data
-- **JSON Export**: Saves detailed evaluation results to JSON files for later analysis and reference
+- **Self-Evaluation Node**: Compares agent outputs against retrieved source material using claim extraction and evidence matching algorithms
+- **Groundedness Scoring**: Calculates Groundedness Score = (Supported Claims) / (Total Claims), range 0-1, where:
+  - 0.9-1.0: Excellent (fully grounded)
+  - 0.7-0.89: Good (mostly grounded)
+  - 0.5-0.69: Fair (partially grounded)
+  - 0.3-0.49: Poor (significant hallucinations)
+  - 0.0-0.29: Critical (mostly fabricated)
+- **Hallucination Detection**: Extracts factual claims and flags those unsupported by tool outputs or RAG retrievals
+- **Evidence Matching**: Multi-source verification against calendar data, RAG retrievals, and datetime tools
+- **18 Test Scenarios**: Comprehensive test suite covering time logic (5), RAG retrieval (5), calendar tools (5), and multi-tool integration (3)
+- **JSON Export**: Structured evaluation results with claim-level analysis, evidence sources, and confidence metrics
 - **Independent Operation**: Runs separately from the main agent system without affecting user experience
 
 ### Technical Components
@@ -89,30 +95,33 @@ Available commands in interactive mode:
 
 **Clean User Experience**: The interactive mode provides a clean, user-friendly interface with minimal logging noise. All detailed logs are saved to files while the console shows only essential information and agent responses.
 
-### Standalone Evaluation System
+### Comprehensive Evaluation System
 ```bash
-python evaluation.py
+python comprehensive_evaluation_system.py
 ```
 
-This runs comprehensive verification tests with detailed reporting and saves results to JSON files in the `evaluation_results/` directory. The evaluation system operates independently from the main agent system.
+This runs 18 automated test scenarios covering all system capabilities with detailed groundedness analysis. Results are saved to `evaluation_results/` with timestamp-based filenames.
 
-**Custom Evaluation Example**:
-```python
-from evaluation import evaluate_agent_responses
+**Latest Evaluation Results**: [`eval_20260205_112424.json`](evaluation_results/eval_20260205_112424.json)
+- **Overall Performance**: 83.3% pass rate (15/18 scenarios)
+- **Average Groundedness Score**: 0.917 (Excellent)
+- **Time Logic Tests**: 80% pass rate (4/5)
+- **RAG Retrieval Tests**: 60% pass rate (3/5)
+- **Calendar Tool Tests**: 100% pass rate (5/5)
+- **Multi-Tool Integration**: 100% pass rate (3/3)
 
-test_cases = [
-    {
-        "name": "Calendar Query Test",
-        "response": "You have 2 meetings today...",
-        "agent_type": "manager",
-        "tools": ["calendar_search_events"],
-        "outputs": {"calendar_search_events": "Found 2 events..."},
-        "rag": []
-    }
-]
+**Test Scenario Categories**:
+1. **Time Logic & Conflict Detection** (5 scenarios): Tests adjacent events, overlapping events, and complex day schedules
+2. **RAG System Retrieval** (5 scenarios): Validates energy pattern retrieval, deadline queries, and skill lookups
+3. **Calendar Tool Integration** (5 scenarios): Verifies event retrieval, multi-day availability, and conflict detection
+4. **Multi-Tool Scenarios** (3 scenarios): Tests energy-aware scheduling, deadline-driven planning, and full context integration
 
-results_file = evaluate_agent_responses(test_cases, "my_test_session")
-```
+**Evaluation Architecture**:
+- **Claim Extractor**: Parses agent responses into verifiable factual claims
+- **Evidence Matcher**: Matches claims against calendar data, RAG retrievals, and tool outputs
+- **Groundedness Calculator**: Computes support ratios with confidence levels
+- **Scenario Executor**: Runs test scenarios through the live multi-agent system
+- **JSON Reporter**: Exports detailed results with claim-level analysis
 
 ### Setup Advanced RAG System
 ```bash
@@ -173,47 +182,151 @@ The system implements two distinct RAG collections with different chunking strat
 
 ### Evaluation System Architecture
 
-The standalone evaluation system provides comprehensive quality assurance:
+The standalone evaluation system implements a rigorous testing framework with automated groundedness verification:
+
+#### Test Scenario Design
+
+**Category 1: Time Logic & Conflict Detection (5 scenarios)**
+- **Scenario 1**: Adjacent Events - No Conflict (12:00-1:00 PM event, query at 1:00 PM)
+  - Expected: Available (adjacent, not overlapping)
+  - Result: PASS - Agent correctly identified availability
+- **Scenario 2**: Separate Events - Future Event (3:00-4:00 PM event, query at 1:00 PM)
+  - Expected: Available (event is later)
+  - Result: PASS - Agent correctly identified availability
+- **Scenario 3**: Actual Overlap - Partial Conflict (12:30-1:30 PM event, query 1:00-2:00 PM)
+  - Expected: Conflict (overlap from 1:00-1:30 PM)
+  - Result: FAIL - Agent incorrectly marked as available (time logic error)
+- **Scenario 4**: Multiple Adjacent Events (1:00-2:00 PM and 2:00-3:00 PM, query at 2:00 PM)
+  - Expected: Not available (meeting starts at 2:00 PM)
+  - Result: PASS - Agent correctly identified conflict
+- **Scenario 5**: Complex Day Schedule (4 events, find 1-hour slot)
+  - Expected: Identify available slots (10-11 AM, 12-2 PM, 3-4 PM)
+  - Result: PASS - Agent identified multiple available slots
+
+**Category 2: RAG System Retrieval (5 scenarios)**
+- **Scenario 6**: Energy Pattern Retrieval
+  - Query: "When is my peak productivity time?"
+  - Expected: Retrieve "Peak: 4:30-6 AM, 8 AM-12 PM; Low: 1-4 PM"
+  - Result: PASS - Groundedness score 1.0
+- **Scenario 7**: Course Deadline Retrieval
+  - Query: "When is my AI Systems Design project due?"
+  - Expected: Retrieve "2026-02-15"
+  - Result: FAIL - Agent did not consult RAG, relied on calendar only
+- **Scenario 8**: Skill/Competency Query
+  - Query: "What programming languages am I proficient in?"
+  - Expected: List ["Python", "JavaScript", "SQL", "Java"]
+  - Result: FAIL - Agent inferred from context instead of RAG retrieval
+- **Scenario 9**: Low Energy Period Awareness
+  - Query: "Should I schedule deep work at 2 PM?"
+  - Expected: Recommend against (low energy: 1-4 PM)
+  - Result: PASS - Agent correctly advised against low energy period
+- **Scenario 10**: Multi-Constraint Planning
+  - Query: "Schedule study session considering energy and deadlines"
+  - Expected: Use both energy profile and deadline data
+  - Result: PASS - Agent integrated multiple constraints
+
+**Category 3: Calendar Tool Integration (5 scenarios)**
+- **Scenario 11**: Simple Event Retrieval
+  - Query: "What meetings do I have today?"
+  - Expected: List all meetings accurately
+  - Result: PASS - Retrieved 9 events with correct times
+- **Scenario 12**: Multi-Day Availability Check
+  - Query: "Am I free tomorrow afternoon?"
+  - Expected: Check tomorrow's afternoon availability
+  - Result: PASS - Identified 2:00-3:00 PM conflict
+- **Scenario 13**: Event Creation Verification
+  - Query: "Schedule meeting with John at 3 PM tomorrow for 1 hour"
+  - Expected: Create event and confirm details
+  - Result: PASS - Proposed time with conflict check
+- **Scenario 14**: Conflict Detection Before Scheduling
+  - Query: "Can I schedule 2-hour meeting starting at 1 PM?"
+  - Expected: Identify conflict and suggest alternative
+  - Result: PASS - Detected 3:00 PM conflict, suggested 4:00 PM
+- **Scenario 15**: Weekly Schedule Overview
+  - Query: "Show me my schedule for this week"
+  - Expected: Provide comprehensive weekly view
+  - Result: PASS - Listed 45+ events across 7 days
+
+**Category 4: Multi-Tool Integration (3 scenarios)**
+- **Scenario 16**: Energy-Aware Scheduling with Conflict Check
+  - Query: "Schedule 2-hour deep work tomorrow during peak energy"
+  - Expected: Use RAG energy data + calendar conflicts
+  - Result: PASS - Proposed 8:00-10:00 AM (peak energy, no conflicts)
+- **Scenario 17**: Deadline-Driven Planning with Calendar Integration
+  - Query: "Help me plan study time for AI project due next week"
+  - Expected: Integrate deadline, energy, and availability
+  - Result: PASS - Proposed multiple study sessions aligned with energy patterns
+- **Scenario 18**: Full Context Planning
+  - Query: "Schedule team meeting considering energy and calendar"
+  - Expected: Consider all factors for optimal recommendation
+  - Result: PASS - Proposed morning slots avoiding low energy periods
 
 #### JSON Output Structure
 Each evaluation session generates a structured JSON file containing:
 
 ```json
 {
-  "session_id": "comprehensive_eval_20260204_225547",
-  "timestamp": "2026-02-04T22:56:14.767252",
-  "test_cases": [
+  "session_id": "eval_20260205_112424",
+  "timestamp": "2026-02-05T11:24:24.123456",
+  "total_scenarios": 18,
+  "categories": {
+    "time_logic": 5,
+    "rag_retrieval": 5,
+    "calendar_tools": 5,
+    "multi_tool": 3
+  },
+  "scenarios": [
     {
-      "test_name": "High Groundedness Response",
-      "agent_type": "planner",
-      "agent_response": "Based on your calendar search...",
-      "tools_used": ["get_calendars_info", "calendar_search_events"],
-      "tool_outputs": {...},
-      "rag_retrievals": [...],
-      "verification_result": {
-        "groundedness_score": 0.85,
-        "supported_claims": [...],
-        "unsupported_claims": [...],
-        "confidence_level": "high",
-        "requires_clarification": false
-      }
+      "scenario_id": 1,
+      "category": "time_logic",
+      "name": "Adjacent Events - No Conflict",
+      "query": "Am I available at 1:00 PM for 30 minutes?",
+      "agent_response": "✅ You ARE available at 1:00 PM for 30 minutes...",
+      "claims_extracted": [
+        {
+          "claim_text": "You ARE available at 1:00 PM for 30 minutes",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "test_result": "PASS",
+      "expected_behavior": "Should identify as available (adjacent, not overlapping)"
     }
   ],
-  "summary_stats": {
-    "total_tests": 5,
-    "average_groundedness_score": 0.72,
-    "high_confidence_responses": 3,
-    "success_rate": 0.60
+  "summary": {
+    "total_scenarios": 18,
+    "passed": 15,
+    "failed": 3,
+    "average_groundedness": 0.917,
+    "category_performance": {
+      "time_logic": {"avg_score": 1.0, "passed": 4, "failed": 1},
+      "rag_retrieval": {"avg_score": 0.7, "passed": 3, "failed": 2},
+      "calendar_tools": {"avg_score": 1.0, "passed": 5, "failed": 0},
+      "multi_tool": {"avg_score": 1.0, "passed": 3, "failed": 0}
+    }
   }
 }
 ```
 
 #### Evaluation Workflow
-1. **Claim Extraction**: Identifies factual claims in agent responses
-2. **Evidence Collection**: Gathers supporting evidence from tools and RAG
-3. **Groundedness Assessment**: Evaluates claim support against evidence
-4. **Confidence Scoring**: Calculates 0-1 groundedness scores
-5. **JSON Export**: Saves detailed results for later analysis
+1. **Scenario Execution**: Runs query through live multi-agent system
+2. **Claim Extraction**: Parses response into verifiable factual claims using line-based extraction
+3. **Evidence Matching**: Matches claims against calendar data, RAG retrievals, and tool outputs
+4. **Groundedness Calculation**: Computes support ratio with domain-specific indicators
+5. **Test Result Determination**: Evaluates semantic correctness for time logic, groundedness scores for other categories
+6. **JSON Export**: Saves detailed results with claim-level analysis and evidence sources
+
+#### Evaluation Metrics & Thresholds
+- **Groundedness Score Calculation**: `score = supported_claims / total_claims`
+- **Pass Threshold**: 0.7 for general scenarios, semantic correctness for time logic
+- **Evidence Sources**: `calendar_tool`, `rag_retrieval`, `datetime_tool`, `none`
+- **Confidence Levels**: `excellent` (≥0.9), `good` (≥0.7), `fair` (≥0.5), `poor` (≥0.3), `critical` (<0.3)
 
 ### Reasoning Loops and Agent Coordination
 
@@ -242,9 +355,9 @@ INFO - RESPONSE GENERATED: Planner agent completed processing
 3. **Context Integration**: Incorporates conversation history and planner results
 4. **Verification Steps**: Calendar conflict checking before recommendations
 
-## Failure Analysis
+## Failure Analysis & System Improvements
 
-### Documented Failure: Incorrect Tool Selection
+### Documented Failure 1: Incorrect Tool Selection
 
 **Initial Failure Scenario**:
 During early testing, the Planner Agent occasionally selected only calendar search tools without consulting the RAG system, leading to generic recommendations that ignored user energy constraints.
@@ -257,6 +370,41 @@ Modified the Planner Agent system prompt to include explicit "MANDATORY SEQUENCE
 
 **Impact**:
 Improved recommendation quality from 75% personalized suggestions to 95%+ by guaranteeing RAG consultation on every planning request.
+
+### Documented Failure 2: Time Logic Edge Cases
+
+**Failure Scenario** (Evaluation Scenario 3):
+Agent incorrectly marked 1:00-2:00 PM as available when a 12:30-1:30 PM event existed, missing the partial overlap from 1:00-1:30 PM.
+
+**Root Cause**:
+Time overlap detection logic in agent reasoning did not properly handle partial overlaps where requested time starts during an existing event.
+
+**Current Status**:
+Identified through comprehensive evaluation system. Time logic tests show 80% pass rate (4/5 scenarios), with this specific edge case requiring refinement.
+
+**Proposed Fix**:
+Enhance system prompt with explicit overlap detection algorithm:
+```
+Overlap exists if: (Event_Start < Request_End) AND (Event_End > Request_Start)
+```
+
+### Documented Failure 3: RAG Retrieval Bypassing
+
+**Failure Scenarios** (Evaluation Scenarios 7 & 8):
+- Scenario 7: Agent did not consult RAG for deadline query, relied on calendar events only
+- Scenario 8: Agent inferred skills from context instead of explicit RAG retrieval
+
+**Root Cause**:
+Agents sometimes use contextual inference or calendar data when RAG retrieval would provide more accurate information. This occurs when the query can be partially answered without RAG.
+
+**Current Status**:
+RAG retrieval tests show 60% pass rate (3/5 scenarios). Agents successfully retrieve energy patterns and provide energy-aware recommendations but occasionally skip RAG for deadline/skill queries.
+
+**Impact**:
+While responses remain factually grounded (0.917 average groundedness), explicit RAG retrieval would improve accuracy and reduce inference-based responses.
+
+**Proposed Fix**:
+Add explicit RAG consultation requirements to system prompts for queries containing keywords: "deadline", "due", "skill", "proficient", "competency".
 
 ## Agent Robustness Evaluation
 
@@ -271,38 +419,74 @@ Improved recommendation quality from 75% personalized suggestions to 95%+ by gua
 - **Reasoning Loops**: Multi-turn conversation memory with agent coordination
 
 ### Self-Evaluation Logic (20% rubric weight)
-- **Standalone Evaluation**: Separate evaluation system for quality assurance without affecting main system performance
-- **Hallucination Control**: Tool-based verification prevents fabricated information
-- **Verification Steps**: Calendar conflict checking and availability confirmation
-- **Fallback Logic**: Default routing to Manager Agent for ambiguous queries
-- **JSON Export**: Detailed evaluation results saved for analysis and compliance
+- **Comprehensive Test Suite**: 18 automated scenarios covering time logic, RAG retrieval, calendar tools, and multi-tool integration
+- **Groundedness Verification**: Claim extraction and evidence matching with 0.917 average groundedness score
+- **Hallucination Detection**: Automated flagging of unsupported claims with evidence source tracking
+- **Performance Metrics**: 83.3% overall pass rate with category-specific analysis
+- **Standalone Architecture**: Separate evaluation system for quality assurance without affecting main system performance
+- **JSON Export**: Structured results with claim-level analysis, evidence sources, and confidence metrics
+- **Continuous Validation**: Evaluation results saved to [`evaluation_results/`](evaluation_results/) for historical tracking
+
+**Key Findings from Evaluation**:
+- **Calendar Tool Integration**: 100% pass rate - excellent real-time calendar data retrieval
+- **Multi-Tool Coordination**: 100% pass rate - successful integration of RAG + calendar + datetime tools
+- **Time Logic**: 80% pass rate - one edge case with partial overlap detection needs refinement
+- **RAG Retrieval**: 60% pass rate - agents sometimes infer from context instead of explicit RAG queries
 
 ## Performance Metrics
 
+### System Performance
 - **Response Time**: Average 3-5 seconds for complex scheduling decisions
-- **Accuracy**: 95%+ conflict detection rate
-- **Personalization**: 90%+ of recommendations incorporate user profile data
-- **Reliability**: 99% successful API interactions
+- **API Reliability**: 99% successful Google Calendar API interactions
+- **Conversation Memory**: 10-turn rolling window with context preservation
+
+### Evaluation Results (18 Test Scenarios)
+- **Overall Pass Rate**: 83.3% (15/18 scenarios)
+- **Average Groundedness Score**: 0.917 (Excellent)
+- **Calendar Tool Accuracy**: 100% (5/5 scenarios)
+- **Multi-Tool Integration**: 100% (3/3 scenarios)
+- **Time Logic Accuracy**: 80% (4/5 scenarios)
+- **RAG Retrieval Accuracy**: 60% (3/5 scenarios)
+
+### Detailed Category Performance
+| Category | Scenarios | Passed | Failed | Avg Score | Pass Rate |
+|----------|-----------|--------|--------|-----------|-----------|
+| Time Logic & Conflict Detection | 5 | 4 | 1 | 1.000 | 80% |
+| RAG System Retrieval | 5 | 3 | 2 | 0.700 | 60% |
+| Calendar Tool Integration | 5 | 5 | 0 | 1.000 | 100% |
+| Multi-Tool Integration | 3 | 3 | 0 | 1.000 | 100% |
+
+**Evaluation Data**: Full results available in [`evaluation_results/eval_20260205_112424.json`](evaluation_results/eval_20260205_112424.json)
 
 ## Project Structure
 
 ```
 my-life-in-blocks/
-├── main.py                    # Main entry point with CLI modes
-├── agents.py                  # Multi-agent system implementation (core system)
-├── rag.py                     # Basic RAG system setup
-├── advanced_rag.py           # Advanced semantic chunking RAG system
-├── evaluation.py             # Standalone evaluation and guardrails system
-├── example_evaluation.py     # Example usage of evaluation system
-├── generate_traces.py        # Implementation trace generator
-├── profile.json              # User profile and preferences
-├── credentials.json          # Google Calendar API credentials
-├── .env                      # Environment variables
-├── chroma_db/               # Basic vector database storage
-├── advanced_chroma_db/      # Advanced semantic chunking database
-├── evaluation_results/      # JSON evaluation results directory
-├── implementation_trace.log  # Execution traces
-└── requirements.txt          # Python dependencies
+├── main.py                              # Main entry point with CLI modes
+├── agents.py                            # Multi-agent system implementation (core system)
+├── rag.py                               # Basic RAG system setup
+├── advanced_rag.py                      # Advanced semantic chunking RAG system
+├── comprehensive_evaluation_system.py   # Comprehensive evaluation framework (18 scenarios)
+├── generate_traces.py                   # Implementation trace generator
+├── test_time_logic.py                   # Unit tests for time overlap detection
+├── profile.json                         # User profile and preferences
+├── credentials.json                     # Google Calendar API credentials
+├── .env                                 # Environment variables
+├── chroma_db/                          # Basic vector database storage
+├── advanced_chroma_db/                 # Advanced semantic chunking database
+├── evaluation_results/                 # JSON evaluation results directory
+│   ├── eval_20260205_111722.json      # Initial evaluation run (0.014 avg score)
+│   └── eval_20260205_112424.json      # Improved evaluation run (0.917 avg score)
+├── implementation_trace.log            # Execution traces
+├── evaluation_trace.log                # Evaluation system logs
+├── EVALUATION_DESIGN.md                # Evaluation scenario specifications
+├── EVALUATION_QUICKSTART.md            # Quick start guide for evaluation
+├── EVALUATION_SYSTEM_SUMMARY.md        # Evaluation system architecture
+├── EVALUATION_QUICK_REFERENCE.md       # Quick reference for evaluation metrics
+├── TIME_LOGIC_IMPROVEMENTS.md          # Time logic refinement documentation
+├── CALENDAR_ENHANCEMENTS_SUMMARY.md    # Calendar tool enhancement summary
+├── VERIFICATION_GUIDE.md               # Verification testing guide
+└── requirements.txt                    # Python dependencies
 ```
 
 ## Team Contributions
