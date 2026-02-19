@@ -268,6 +268,17 @@ Runs 40 test scenarios with groundedness analysis. Results saved to `evaluation_
 
 **Clean Diagrams & Professional Documentation**: Clear visual representation of system components and data flow.
 
+### Architecture Pattern: Centralized Orchestrator with Shared Memory
+
+The system implements a **Centralized Orchestrator Pattern** where the `MultiAgentSystem` class acts as the central coordinator managing all agent interactions. Agents don't communicate directly with each other; instead, they coordinate through a shared memory layer (Supabase) with the orchestrator handling routing, context passing, and result propagation.
+
+**Key Characteristics:**
+- **Intent Classification**: Orchestrator analyzes queries and routes to appropriate agent
+- **Sequential Execution**: One agent processes per query (no parallel execution)
+- **Indirect Communication**: Agents coordinate through shared memory (Planner stores results → Executor retrieves)
+- **Context Awareness**: Orchestrator passes conversation history and recent context to each agent
+- **Adaptive Control Integration**: Orchestrator wraps all agents with caching, retry logic, and evaluation
+
 ### System Components
 
 ```
@@ -276,33 +287,125 @@ Runs 40 test scenarios with groundedness analysis. Results saved to `evaluation_
 │  Streamlit Web App (app.py) | CLI (main.py)            │
 └─────────────────────────────────────────────────────────┘
                             │
+                            ▼
 ┌─────────────────────────────────────────────────────────┐
-│              MULTI-AGENT SYSTEM (agents.py)             │
+│         CENTRALIZED ORCHESTRATOR (MultiAgentSystem)     │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  Intent Classification → Agent Routing          │   │
+│  │  Context Management → Result Propagation        │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                          │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
 │  │ Manager  │ │ Planner  │ │ Executor │ │ Reviewer │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-                            │
+│  │  Agent   │ │  Agent   │ │  Agent   │ │  Agent   │  │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘  │
+│       │            │            │            │         │
+│       └────────────┴────────────┴────────────┘         │
+│                    │ (No Direct Communication)          │
+└────────────────────┼────────────────────────────────────┘
+                     │
+                     ▼
 ┌─────────────────────────────────────────────────────────┐
 │          ADAPTIVE CONTROL (adaptive_control.py)         │
 │  Cache | Retry | Groundedness | Confidence | Metrics   │
 └─────────────────────────────────────────────────────────┘
-                            │
+                     │
+                     ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    DATA LAYER                            │
+│            SHARED MEMORY LAYER (Coordination)           │
 │  ┌──────────────────┐  ┌──────────────────┐            │
 │  │ Supabase Memory  │  │  Supabase RAG    │            │
 │  │ (9 tables)       │  │  (pgvector)      │            │
+│  │                  │  │                  │            │
+│  │ • Planner stores │  │ • User profile   │            │
+│  │   results        │  │ • Energy patterns│            │
+│  │ • Executor reads │  │ • Preferences    │            │
+│  │   plans          │  │ • Constraints    │            │
+│  │ • All agents     │  │                  │            │
+│  │   share context  │  │                  │            │
 │  └──────────────────┘  └──────────────────┘            │
 └─────────────────────────────────────────────────────────┘
-                            │
+                     │
+                     ▼
 ┌─────────────────────────────────────────────────────────┐
 │              EXTERNAL INTEGRATIONS                       │
 │  Google Calendar API | Gmail API | OpenAI API          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Diagram Explanation**: Top-down flow from user interface through agent layer, adaptive control, persistent storage, to external APIs. Each layer has clear responsibilities and interfaces.
+### Coordination Flow Diagram
+
+```
+USER QUERY: "Schedule a team meeting tomorrow at 2 PM"
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Intent Classification                 │
+│ → Analyzes query keywords and context               │
+│ → Decision: Route to PLANNER (scheduling request)   │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Context Preparation                   │
+│ → Loads last 5 conversation turns from memory       │
+│ → Wraps agent tools with adaptive control           │
+│ → Invokes PLANNER agent                             │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ PLANNER AGENT: Executes with Tools                  │
+│ → Calls search_user_profile (RAG retrieval)         │
+│ → Calls get_current_datetime (temporal awareness)   │
+│ → Calls search_events (conflict detection)          │
+│ → Generates scheduling plan with options            │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Result Handling                       │
+│ → Stores plan in shared memory (prior_plans table)  │
+│ → Adds turn to conversation history                 │
+│ → Returns response to user                          │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+USER RESPONSE: "Yes, schedule it"
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Intent Classification                 │
+│ → Detects approval + pending plan in memory         │
+│ → Decision: Route to EXECUTOR (confirmation)        │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Context Preparation                   │
+│ → Retrieves pending plan from shared memory         │
+│ → Passes plan + conversation history to EXECUTOR    │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ EXECUTOR AGENT: Executes with Tools                 │
+│ → Reads plan from memory (indirect coordination)    │
+│ → Calls create_event (Google Calendar API)          │
+│ → Confirms event creation                           │
+└─────────────────────────────────────────────────────┘
+     │
+     ▼
+┌─────────────────────────────────────────────────────┐
+│ ORCHESTRATOR: Learning & Cleanup                    │
+│ → Learns user preferences from approval             │
+│ → Invalidates calendar cache                        │
+│ → Updates performance metrics                       │
+│ → Returns confirmation to user                      │
+└─────────────────────────────────────────────────────┘
+```
+
+**Diagram Explanation**: The orchestrator acts as the central hub, routing queries to appropriate agents based on intent classification. Agents coordinate indirectly through shared memory (Supabase), with the orchestrator managing context passing, result propagation, and adaptive control wrapping. This pattern ensures clean separation of concerns while enabling sophisticated multi-agent workflows.
 
 ### Agent Coordination
 
