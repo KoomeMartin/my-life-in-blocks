@@ -291,35 +291,46 @@ The system implements a **Centralized Orchestrator Pattern** where the `MultiAge
 ┌─────────────────────────────────────────────────────────┐
 │         CENTRALIZED ORCHESTRATOR (MultiAgentSystem)     │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │  Intent Classification → Agent Routing          │   │
-│  │  Context Management → Result Propagation        │   │
+│  │  • Intent Classification → Agent Selection      │   │
+│  │  • Context Management (conversation history)    │   │
+│  │  • Result Propagation (memory coordination)     │   │
+│  │  • Temporarily wraps agent tools with adaptive  │   │
+│  │    control during execution                     │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                          │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
 │  │ Manager  │ │ Planner  │ │ Executor │ │ Reviewer │  │
 │  │  Agent   │ │  Agent   │ │  Agent   │ │  Agent   │  │
+│  │          │ │          │ │          │ │          │  │
+│  │ Tools:   │ │ Tools:   │ │ Tools:   │ │ Tools:   │  │
+│  │ • Memory │ │ • Memory │ │ • Create │ │ • Memory │  │
+│  │ • Search │ │ • Search │ │ • Update │ │ • Search │  │
+│  │ • Time   │ │ • Time   │ │ • Delete │ │ • Email  │  │
 │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘  │
 │       │            │            │            │         │
 │       └────────────┴────────────┴────────────┘         │
-│                    │ (No Direct Communication)          │
-│                    │ All agents access tools via        │
-│                    │ orchestrator + adaptive control    │
-└────────────────────┼────────────────────────────────────┘
-                     │
-                     ▼
+│         (No Direct Agent-to-Agent Communication)        │
+└─────────────────────────────────────────────────────────┘
+         │            │            │            │
+         └────────────┴────────────┴────────────┘
+                      │ (Direct tool access)
+                      ▼
 ┌─────────────────────────────────────────────────────────┐
 │       ADAPTIVE CONTROL LAYER (adaptive_control.py)      │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │ Wraps ALL agent tools with:                     │   │
+│  │ Orchestrator temporarily wraps tools with:      │   │
 │  │ • Intelligent Caching (TTL-based)               │   │
 │  │ • Automatic Retry (exponential backoff)         │   │
 │  │ • Groundedness Checking (claim verification)    │   │
 │  │ • Confidence Evaluation (clarity assessment)    │   │
 │  │ • Metrics Tracking (performance monitoring)     │   │
+│  │                                                 │   │
+│  │ Note: Wrapping happens at execution time,       │   │
+│  │ then tools are restored to original state       │   │
 │  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
-                     │
-                     ▼
+                      │
+                      ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   TOOL LAYER                             │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │
