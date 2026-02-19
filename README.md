@@ -302,15 +302,40 @@ The system implements a **Centralized Orchestrator Pattern** where the `MultiAge
 │       │            │            │            │         │
 │       └────────────┴────────────┴────────────┘         │
 │                    │ (No Direct Communication)          │
+│                    │ All agents access tools via        │
+│                    │ orchestrator + adaptive control    │
 └────────────────────┼────────────────────────────────────┘
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│          ADAPTIVE CONTROL (adaptive_control.py)         │
-│  Cache | Retry | Groundedness | Confidence | Metrics   │
+│       ADAPTIVE CONTROL LAYER (adaptive_control.py)      │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │ Wraps ALL agent tools with:                     │   │
+│  │ • Intelligent Caching (TTL-based)               │   │
+│  │ • Automatic Retry (exponential backoff)         │   │
+│  │ • Groundedness Checking (claim verification)    │   │
+│  │ • Confidence Evaluation (clarity assessment)    │   │
+│  │ • Metrics Tracking (performance monitoring)     │   │
+│  └─────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                      │
                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                   TOOL LAYER                             │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │
+│  │ Memory Tool  │ │ Calendar     │ │ Temporal     │   │
+│  │ (RAG)        │ │ Tools        │ │ Tool         │   │
+│  │              │ │              │ │              │   │
+│  │ • Profile    │ │ • Search     │ │ • Current    │   │
+│  │ • Energy     │ │ • Create     │ │   datetime   │   │
+│  │ • Prefs      │ │ • Update     │ │ • Deadline   │   │
+│  │ • Skills     │ │ • Delete     │ │   calc       │   │
+│  └──────┬───────┘ └──────┬───────┘ └──────┬───────┘   │
+│         │                │                │            │
+│         └────────────────┴────────────────┘            │
+└─────────────────────────┼───────────────────────────────┘
+                          │
+                          ▼
 ┌─────────────────────────────────────────────────────────┐
 │            SHARED MEMORY LAYER (Coordination)           │
 │  ┌──────────────────┐  ┌──────────────────┐            │
@@ -321,12 +346,12 @@ The system implements a **Centralized Orchestrator Pattern** where the `MultiAge
 │  │   results        │  │ • Energy patterns│            │
 │  │ • Executor reads │  │ • Preferences    │            │
 │  │   plans          │  │ • Constraints    │            │
-│  │ • All agents     │  │                  │            │
-│  │   share context  │  │                  │            │
+│  │ • All agents     │  │ • Competencies   │            │
+│  │   share context  │  │ • Schedules      │            │
 │  └──────────────────┘  └──────────────────┘            │
 └─────────────────────────────────────────────────────────┘
-                     │
-                     ▼
+                          │
+                          ▼
 ┌─────────────────────────────────────────────────────────┐
 │              EXTERNAL INTEGRATIONS                       │
 │  Google Calendar API | Gmail API | OpenAI API          │
