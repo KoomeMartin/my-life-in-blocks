@@ -194,23 +194,4 @@ AGENT_CONFIG = {
 3. Call from `main()` function
 4. Test with `streamlit run app.py`
 
-## Next Steps
 
-- ✅ Chat interface working
-- ✅ Agent identification
-- ✅ Tool usage display
-- ✅ Session management
-- ✅ Quick actions
-- 🔄 Future: Calendar visualization
-- 🔄 Future: Analytics charts
-- 🔄 Future: Export reports
-
-## Support
-
-For issues or questions:
-1. Check this guide
-2. Review `README.md` for system setup
-3. Check logs in terminal where Streamlit is running
-4. Verify all prerequisites are met
-
-Enjoy your new web interface! 🎉
