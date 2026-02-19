@@ -599,19 +599,6 @@ Run `complete_memory_schema.sql` - includes the fix.
 
 See [FAILURE_CASE_REPORT.md](FAILURE_CASE_REPORT.md) for detailed analysis of system limitations and failure cases.
 
-**Key Findings:**
-- **Timezone Handling**: Initial implementation didn't account for DST transitions - fixed with explicit timezone awareness
-- **Conflict Detection Edge Cases**: Back-to-back events initially flagged as conflicts - refined logic to distinguish overlaps from adjacency
-- **RAG Retrieval Precision**: Early chunking strategy produced 500+ chunks with low relevance - reduced to 11 semantic types with importance scoring
-- **Memory Bloat**: Unlimited message retention caused performance degradation - implemented 30-day pruning with session summaries
-- **Cache Invalidation**: Static TTLs didn't adapt to user patterns - added dynamic adjustment based on hit rates
-
-**Improvements Implemented:**
-- Groundedness checking to prevent hallucinations (87.5% average score)
-- Confidence thresholds to trigger clarification requests (60% threshold)
-- Automatic retry with exponential backoff (100% success rate)
-- Content deduplication reducing storage by 66.7%
-- Performance metrics tracking for continuous optimization
 
 **Ongoing Challenges:**
 - Complex multi-day scheduling with energy optimization (80% pass rate)
