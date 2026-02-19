@@ -523,7 +523,7 @@ The standalone evaluation system implements a rigorous testing framework with au
   - Result: PASS - Proposed morning slots avoiding low energy periods
 
 #### JSON Output Structure
-Each evaluation session generates a structured JSON file containing:
+Each evaluation session generates a structured JSON file containing [`evaluation_results/`](evaluation_results/):
 
 ```json
 {
@@ -704,32 +704,6 @@ Migrated to Supabase (PostgreSQL + pgvector) with:
 **Impact**:
 Enabled cloud-based deployment, multi-user concurrent access, and automatic disaster recovery while reducing storage costs by 66.7%.
 
-## Agent Robustness Evaluation
-
-### Implementation Robustness (40% rubric weight)
-- **Navigation Testing**: Agents successfully switch between retrieval (RAG) and tool use (calendar API) based on query complexity
-- **Data Integration**: Verified connection to both profile.json and live Google Calendar data
-- **Error Handling**: Graceful degradation when optional components (RAG) are unavailable
-
-### Technical Sophistication (30% rubric weight)
-- **Chunking Strategy**: Optimized for user profile retrieval with semantic overlap
-- **Tool Design**: Modular tool architecture with clear separation of concerns
-- **Reasoning Loops**: Multi-turn conversation memory with agent coordination
-
-### Self-Evaluation Logic (20% rubric weight)
-- **Comprehensive Test Suite**: 18 automated scenarios covering time logic, RAG retrieval, calendar tools, and multi-tool integration
-- **Groundedness Verification**: Claim extraction and evidence matching with 0.917 average groundedness score
-- **Hallucination Detection**: Automated flagging of unsupported claims with evidence source tracking
-- **Performance Metrics**: 83.3% overall pass rate with category-specific analysis
-- **Standalone Architecture**: Separate evaluation system for quality assurance without affecting main system performance
-- **JSON Export**: Structured results with claim-level analysis, evidence sources, and confidence metrics
-- **Continuous Validation**: Evaluation results saved to [`evaluation_results/`](evaluation_results/) for historical tracking
-
-**Key Findings from Evaluation**:
-- **Calendar Tool Integration**: 100% pass rate - excellent real-time calendar data retrieval
-- **Multi-Tool Coordination**: 100% pass rate - successful integration of RAG + calendar + datetime tools
-- **Time Logic**: 80% pass rate - one edge case with partial overlap detection needs refinement
-- **RAG Retrieval**: 60% pass rate - agents sometimes infer from context instead of explicit RAG queries
 
 ## Performance Metrics
 
@@ -1033,7 +1007,7 @@ This project was developed collaboratively by two team members with distinct are
 
 **Mohamed Awud**:
 - RAG system specialist responsible for advanced retrieval-augmented generation implementation
-- Designed and implemented the advanced semantic chunking strategy with 11 specialized chunk types
+- Designed and implemented the advanced semantic chunking strategy
 - Developed the dual-collection RAG architecture with specialized chunking methods
 - Created the sophisticated metadata system for priority-based retrieval with 14 metadata fields
 - Implemented importance scoring system (0.3-1.0) based on chunk type and content
