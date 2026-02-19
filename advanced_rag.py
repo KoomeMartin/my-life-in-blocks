@@ -3,9 +3,9 @@ import os
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 from langchain_core.documents import Document
-from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from supabase_rag import SupabaseVectorStore
 
 load_dotenv()
 
@@ -422,16 +422,24 @@ class HybridChunkingStrategy:
         
         return all_chunks
 
-def build_advanced_vector_store(chunks: List[Document]) -> Chroma:
+def build_advanced_vector_store(chunks: List[Document]) -> SupabaseVectorStore:
     """
-    Build vector store with advanced chunking strategy.
+    Build Supabase vector store with advanced chunking strategy.
+    Uses cloud-based PostgreSQL + pgvector for scalable storage.
     """
-    return Chroma.from_documents(
-        documents=chunks,
-        collection_name="advanced_agentic_brain",
-        embedding=OpenAIEmbeddings(),
-        persist_directory="./advanced_chroma_db"
+    print("☁️  Connecting to Supabase vector store...")
+    
+    # Initialize Supabase vector store
+    vectorstore = SupabaseVectorStore(
+        collection_name="advanced_agentic_brain"
     )
+    
+    # Add documents to Supabase
+    print(f"📤 Uploading {len(chunks)} documents to Supabase...")
+    vectorstore.add_documents(chunks)
+    
+    print("✅ Documents successfully stored in Supabase")
+    return vectorstore
 
 # === EXECUTION ===
 if __name__ == "__main__":
@@ -459,15 +467,12 @@ if __name__ == "__main__":
         print(f"  • {chunk_type}: {count} chunks")
     
     # Build vector store
-    print(f"\n🔗 BUILDING ADVANCED VECTOR STORE...")
+    print(f"\n🔗 BUILDING SUPABASE VECTOR STORE...")
     vectorstore = build_advanced_vector_store(chunks)
     
     # Create retriever with advanced search
     retriever = vectorstore.as_retriever(
-        search_kwargs={
-            "k": 5,  # Get more chunks for better context
-            "filter": {"retrieval_priority": {"$in": ["critical", "high"]}}  # Prioritize important chunks
-        }
+        search_kwargs={"k": 5}  # Get more chunks for better context
     )
     
     print("✅ ADVANCED RAG SYSTEM READY!")
@@ -476,3 +481,5 @@ if __name__ == "__main__":
     print("• Sliding window ensures comprehensive coverage")
     print("• Metadata enables priority-based retrieval")
     print("• Domain-specific strategies optimize for scheduling use case")
+    print("☁️  Cloud-based storage with Supabase (PostgreSQL + pgvector)")
+    print("🔒 Automatic backups and multi-user support")

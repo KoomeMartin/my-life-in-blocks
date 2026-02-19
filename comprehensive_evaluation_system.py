@@ -517,7 +517,7 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
     scenarios = []
     
     # =========================================================================
-    # CATEGORY 1: TIME LOGIC & CONFLICT DETECTION (5 scenarios)
+    # CATEGORY 1: TIME LOGIC & CONFLICT DETECTION (10 scenarios)
     # =========================================================================
     
     # Scenario 1: Adjacent Events - No Conflict
@@ -606,13 +606,89 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # =========================================================================
-    # CATEGORY 2: RAG SYSTEM RETRIEVAL (5 scenarios)
-    # =========================================================================
-    
-    # Scenario 6: Energy Pattern Retrieval
+    # Scenario 6: Back-to-Back Meetings
     scenarios.append({
         "id": 6,
+        "category": "time_logic",
+        "name": "Back-to-Back Meetings - No Gap",
+        "query": "Can I schedule a 30-minute meeting at 10:00 AM?",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "9:00-10:00 AM", "title": "Morning Standup"},
+                {"time": "10:00-11:00 AM", "title": "Project Review"}
+            ],
+            rag_data=None,
+            calendar_data={"events": [
+                {"start": "09:00", "end": "10:00"},
+                {"start": "10:00", "end": "11:00"}
+            ]},
+            expected_behavior="Should identify conflict (meeting already at 10:00 AM)"
+        )
+    })
+    
+    # Scenario 7: Event Ending Before Request
+    scenarios.append({
+        "id": 7,
+        "category": "time_logic",
+        "name": "Event Ending Before Request",
+        "query": "Am I available at 11:00 AM for 1 hour?",
+        "context": ScenarioContext(
+            existing_events=[{"time": "9:00-10:30 AM", "title": "Team Meeting"}],
+            rag_data=None,
+            calendar_data={"events": [{"start": "09:00", "end": "10:30"}]},
+            expected_behavior="Should identify as available (event ends before request)"
+        )
+    })
+    
+    # Scenario 8: Long Event Spanning Multiple Hours
+    scenarios.append({
+        "id": 8,
+        "category": "time_logic",
+        "name": "Long Event Spanning Multiple Hours",
+        "query": "Find available time between 1 PM and 5 PM",
+        "context": ScenarioContext(
+            existing_events=[{"time": "2:00-4:30 PM", "title": "Workshop"}],
+            rag_data=None,
+            calendar_data={"events": [{"start": "14:00", "end": "16:30"}]},
+            expected_behavior="Should identify available: 1-2 PM and 4:30-5 PM"
+        )
+    })
+    
+    # Scenario 9: Early Morning Availability
+    scenarios.append({
+        "id": 9,
+        "category": "time_logic",
+        "name": "Early Morning Availability",
+        "query": "Am I free at 7:00 AM tomorrow?",
+        "context": ScenarioContext(
+            existing_events=[{"time": "Tomorrow 8:00-9:00 AM", "title": "Breakfast Meeting"}],
+            rag_data=None,
+            calendar_data={"events": [{"start": "08:00", "end": "09:00", "date": "tomorrow"}]},
+            expected_behavior="Should identify as available (before first meeting)"
+        )
+    })
+    
+    # Scenario 10: Late Evening Availability
+    scenarios.append({
+        "id": 10,
+        "category": "time_logic",
+        "name": "Late Evening Availability",
+        "query": "Can I schedule something at 6:00 PM?",
+        "context": ScenarioContext(
+            existing_events=[{"time": "4:00-5:00 PM", "title": "Final Meeting"}],
+            rag_data=None,
+            calendar_data={"events": [{"start": "16:00", "end": "17:00"}]},
+            expected_behavior="Should identify as available (after last meeting)"
+        )
+    })
+    
+    # =========================================================================
+    # CATEGORY 2: RAG SYSTEM RETRIEVAL (10 scenarios)
+    # =========================================================================
+    
+    # Scenario 11: Energy Pattern Retrieval
+    scenarios.append({
+        "id": 11,
         "category": "rag_retrieval",
         "name": "Energy Pattern Retrieval",
         "query": "When is my peak productivity time?",
@@ -624,9 +700,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 7: Course Deadline Retrieval
+    # Scenario 12: Course Deadline Retrieval
     scenarios.append({
-        "id": 7,
+        "id": 12,
         "category": "rag_retrieval",
         "name": "Course Deadline Retrieval",
         "query": "When is my AI Systems Design project due?",
@@ -638,9 +714,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 8: Skill/Competency Query
+    # Scenario 13: Skill/Competency Query
     scenarios.append({
-        "id": 8,
+        "id": 13,
         "category": "rag_retrieval",
         "name": "Skill/Competency Query",
         "query": "What programming languages am I proficient in?",
@@ -652,9 +728,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 9: Low Energy Period Awareness
+    # Scenario 14: Low Energy Period Awareness
     scenarios.append({
-        "id": 9,
+        "id": 14,
         "category": "rag_retrieval",
         "name": "Low Energy Period Awareness",
         "query": "Should I schedule a deep work session at 2 PM?",
@@ -666,9 +742,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 10: Multi-Constraint Planning
+    # Scenario 15: Multi-Constraint Planning
     scenarios.append({
-        "id": 10,
+        "id": 15,
         "category": "rag_retrieval",
         "name": "Multi-Constraint Planning",
         "query": "Schedule study session considering my energy and upcoming deadlines",
@@ -683,13 +759,83 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
+    # Scenario 16: Chronotype Identification
+    scenarios.append({
+        "id": 16,
+        "category": "rag_retrieval",
+        "name": "Chronotype Identification",
+        "query": "What's my chronotype and how should I schedule my day?",
+        "context": ScenarioContext(
+            existing_events=[],
+            rag_data={"chronotype": "Morning_Lark_With_Afternoon_Slump"},
+            calendar_data=None,
+            expected_behavior="Should retrieve chronotype and provide scheduling advice"
+        )
+    })
+    
+    # Scenario 17: Course Schedule Retrieval
+    scenarios.append({
+        "id": 17,
+        "category": "rag_retrieval",
+        "name": "Course Schedule Retrieval",
+        "query": "What courses am I taking this semester?",
+        "context": ScenarioContext(
+            existing_events=[],
+            rag_data={"courses": ["AI System Design", "Computer Vision", "Machine Learning", "Tech Startups"]},
+            calendar_data=None,
+            expected_behavior="Should list all courses from profile"
+        )
+    })
+    
+    # Scenario 18: Work Preferences Query
+    scenarios.append({
+        "id": 18,
+        "category": "rag_retrieval",
+        "name": "Work Preferences Query",
+        "query": "What are my preferred working hours?",
+        "context": ScenarioContext(
+            existing_events=[],
+            rag_data={"preferences": {"work_hours": "8 AM - 12 PM for deep work"}},
+            calendar_data=None,
+            expected_behavior="Should retrieve work preferences from profile"
+        )
+    })
+    
+    # Scenario 19: Project Constraints Retrieval
+    scenarios.append({
+        "id": 19,
+        "category": "rag_retrieval",
+        "name": "Project Constraints Retrieval",
+        "query": "What are the constraints for my Computer Vision project?",
+        "context": ScenarioContext(
+            existing_events=[],
+            rag_data={"project_constraints": {"Computer Vision": "Team meetings required, 2-hour blocks preferred"}},
+            calendar_data=None,
+            expected_behavior="Should retrieve project-specific constraints"
+        )
+    })
+    
+    # Scenario 20: Recovery Protocol Query
+    scenarios.append({
+        "id": 20,
+        "category": "rag_retrieval",
+        "name": "Recovery Protocol Query",
+        "query": "How should I recover after low energy periods?",
+        "context": ScenarioContext(
+            existing_events=[],
+            rag_data={"recovery_protocol": "16:00-19:00: Recovery period, light tasks recommended"},
+            calendar_data=None,
+            expected_behavior="Should retrieve recovery strategies from profile"
+        )
+    })
+    
     # =========================================================================
-    # CATEGORY 3: CALENDAR TOOL INTEGRATION (5 scenarios)
+    # CATEGORY 3: CALENDAR TOOL INTEGRATION (10 scenarios)
     # =========================================================================
     
-    # Scenario 11: Simple Event Retrieval
+    # Scenario 21: Simple Event Retrieval
     scenarios.append({
-        "id": 11,
+        "id": 21,
         "category": "calendar_tools",
         "name": "Simple Event Retrieval",
         "query": "What meetings do I have today?",
@@ -709,9 +855,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 12: Multi-Day Availability Check
+    # Scenario 22: Multi-Day Availability Check
     scenarios.append({
-        "id": 12,
+        "id": 22,
         "category": "calendar_tools",
         "name": "Multi-Day Availability Check",
         "query": "Am I free tomorrow afternoon?",
@@ -723,9 +869,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 13: Event Creation Verification
+    # Scenario 23: Event Creation Verification
     scenarios.append({
-        "id": 13,
+        "id": 23,
         "category": "calendar_tools",
         "name": "Event Creation Verification",
         "query": "Schedule meeting with John at 3 PM tomorrow for 1 hour",
@@ -737,9 +883,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 14: Conflict Detection Before Scheduling
+    # Scenario 24: Conflict Detection Before Scheduling
     scenarios.append({
-        "id": 14,
+        "id": 24,
         "category": "calendar_tools",
         "name": "Conflict Detection Before Scheduling",
         "query": "Can I schedule a 2-hour meeting starting at 1 PM?",
@@ -751,9 +897,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 15: Weekly Schedule Overview
+    # Scenario 25: Weekly Schedule Overview
     scenarios.append({
-        "id": 15,
+        "id": 25,
         "category": "calendar_tools",
         "name": "Weekly Schedule Overview",
         "query": "Show me my schedule for this week",
@@ -773,13 +919,107 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
+    # Scenario 26: Specific Day Query
+    scenarios.append({
+        "id": 26,
+        "category": "calendar_tools",
+        "name": "Specific Day Query",
+        "query": "What's on my calendar for Friday?",
+        "context": ScenarioContext(
+            existing_events=[
+                {"day": "Friday", "time": "10:00 AM", "title": "Team Meeting"},
+                {"day": "Friday", "time": "3:00 PM", "title": "Project Review"}
+            ],
+            rag_data=None,
+            calendar_data={"events": [
+                {"day": "Friday", "start": "10:00", "title": "Team Meeting"},
+                {"day": "Friday", "start": "15:00", "title": "Project Review"}
+            ]},
+            expected_behavior="Should list Friday's events"
+        )
+    })
+    
+    # Scenario 27: Next Available Slot
+    scenarios.append({
+        "id": 27,
+        "category": "calendar_tools",
+        "name": "Next Available Slot",
+        "query": "When is my next available 30-minute slot?",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "Now-11:00 AM", "title": "Current Meeting"},
+                {"time": "11:30 AM-12:00 PM", "title": "Quick Sync"}
+            ],
+            rag_data=None,
+            calendar_data={"events": [
+                {"start": "10:00", "end": "11:00"},
+                {"start": "11:30", "end": "12:00"}
+            ]},
+            expected_behavior="Should identify 11:00-11:30 AM as next available"
+        )
+    })
+    
+    # Scenario 28: Event Duration Query
+    scenarios.append({
+        "id": 28,
+        "category": "calendar_tools",
+        "name": "Event Duration Query",
+        "query": "How long is my meeting at 2 PM?",
+        "context": ScenarioContext(
+            existing_events=[{"time": "2:00-3:30 PM", "title": "Client Presentation"}],
+            rag_data=None,
+            calendar_data={"events": [{"start": "14:00", "end": "15:30", "title": "Client Presentation"}]},
+            expected_behavior="Should report 1.5 hours duration"
+        )
+    })
+    
+    # Scenario 29: Recurring Event Check
+    scenarios.append({
+        "id": 29,
+        "category": "calendar_tools",
+        "name": "Recurring Event Check",
+        "query": "Do I have any recurring meetings this week?",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "Monday 9:00 AM", "title": "Daily Standup", "recurring": True},
+                {"time": "Wednesday 2:00 PM", "title": "Weekly Review", "recurring": True}
+            ],
+            rag_data=None,
+            calendar_data={"events": [
+                {"day": "Monday", "start": "09:00", "title": "Daily Standup", "recurring": True},
+                {"day": "Wednesday", "start": "14:00", "title": "Weekly Review", "recurring": True}
+            ]},
+            expected_behavior="Should identify recurring meetings"
+        )
+    })
+    
+    # Scenario 30: Free Time Between Meetings
+    scenarios.append({
+        "id": 30,
+        "category": "calendar_tools",
+        "name": "Free Time Between Meetings",
+        "query": "How much free time do I have between my 10 AM and 2 PM meetings?",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "10:00-11:00 AM", "title": "Morning Meeting"},
+                {"time": "2:00-3:00 PM", "title": "Afternoon Meeting"}
+            ],
+            rag_data=None,
+            calendar_data={"events": [
+                {"start": "10:00", "end": "11:00"},
+                {"start": "14:00", "end": "15:00"}
+            ]},
+            expected_behavior="Should calculate 3 hours of free time"
+        )
+    })
+    
     # =========================================================================
-    # CATEGORY 4: COMPLEX MULTI-TOOL SCENARIOS (3 scenarios)
+    # CATEGORY 4: COMPLEX MULTI-TOOL SCENARIOS (10 scenarios)
     # =========================================================================
     
-    # Scenario 16: Energy-Aware Scheduling with Conflict Check
+    # Scenario 31: Energy-Aware Scheduling with Conflict Check
     scenarios.append({
-        "id": 16,
+        "id": 31,
         "category": "multi_tool",
         "name": "Energy-Aware Scheduling with Conflict Check",
         "query": "Schedule 2-hour deep work session tomorrow during peak energy",
@@ -791,9 +1031,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 17: Deadline-Driven Planning with Calendar Integration
+    # Scenario 32: Deadline-Driven Planning with Calendar Integration
     scenarios.append({
-        "id": 17,
+        "id": 32,
         "category": "multi_tool",
         "name": "Deadline-Driven Planning with Calendar Integration",
         "query": "Help me plan study time for AI project due next week",
@@ -814,9 +1054,9 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
         )
     })
     
-    # Scenario 18: Full Context Planning
+    # Scenario 33: Full Context Planning
     scenarios.append({
-        "id": 18,
+        "id": 33,
         "category": "multi_tool",
         "name": "Full Context Planning",
         "query": "Schedule team meeting considering my energy patterns and calendar",
@@ -825,6 +1065,163 @@ def get_evaluation_scenarios() -> List[Dict[str, Any]]:
             rag_data={"energy_profile": "Peak: 8 AM-12 PM; Low: 1-4 PM"},
             calendar_data={"events": [{"start": "13:00", "end": "14:00", "date": "tomorrow"}]},
             expected_behavior="Should consider all factors for optimal recommendation"
+        )
+    })
+    
+    # Scenario 34: Multi-Day Project Planning
+    scenarios.append({
+        "id": 34,
+        "category": "multi_tool",
+        "name": "Multi-Day Project Planning",
+        "query": "Plan my Computer Vision project work for this week considering deadlines and energy",
+        "context": ScenarioContext(
+            existing_events=[
+                {"day": "Monday", "time": "2:00-4:00 PM", "title": "Meetings"},
+                {"day": "Wednesday", "time": "10:00-12:00 PM", "title": "Class"}
+            ],
+            rag_data={
+                "deadlines": {"Computer Vision": "Friday"},
+                "energy_profile": "Peak: 8 AM-12 PM",
+                "project_constraints": {"Computer Vision": "2-hour blocks preferred"}
+            },
+            calendar_data={"events": [
+                {"day": "Monday", "start": "14:00", "end": "16:00"},
+                {"day": "Wednesday", "start": "10:00", "end": "12:00"}
+            ]},
+            expected_behavior="Should create multi-day plan with energy and deadline awareness"
+        )
+    })
+    
+    # Scenario 35: Skill-Based Task Scheduling
+    scenarios.append({
+        "id": 35,
+        "category": "multi_tool",
+        "name": "Skill-Based Task Scheduling",
+        "query": "Schedule time for Python coding considering my skills and energy",
+        "context": ScenarioContext(
+            existing_events=[{"time": "Tomorrow 3:00-4:00 PM", "title": "Meeting"}],
+            rag_data={
+                "skills": {"Python": "Expert"},
+                "energy_profile": "Peak: 8 AM-12 PM for complex coding"
+            },
+            calendar_data={"events": [{"start": "15:00", "end": "16:00", "date": "tomorrow"}]},
+            expected_behavior="Should schedule during peak hours for complex coding"
+        )
+    })
+    
+    # Scenario 36: Recovery-Aware Scheduling
+    scenarios.append({
+        "id": 36,
+        "category": "multi_tool",
+        "name": "Recovery-Aware Scheduling",
+        "query": "Schedule light tasks after my afternoon slump",
+        "context": ScenarioContext(
+            existing_events=[{"time": "Tomorrow 1:00-3:00 PM", "title": "Intensive Workshop"}],
+            rag_data={
+                "energy_profile": "Low: 1-4 PM; Recovery: 4-7 PM",
+                "recovery_protocol": "Light tasks after low energy periods"
+            },
+            calendar_data={"events": [{"start": "13:00", "end": "15:00", "date": "tomorrow"}]},
+            expected_behavior="Should schedule light tasks during recovery period"
+        )
+    })
+    
+    # Scenario 37: Constraint-Based Meeting Scheduling
+    scenarios.append({
+        "id": 37,
+        "category": "multi_tool",
+        "name": "Constraint-Based Meeting Scheduling",
+        "query": "Schedule team meeting following project constraints and availability",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "Tomorrow 9:00-10:00 AM", "title": "Standup"},
+                {"time": "Tomorrow 2:00-3:00 PM", "title": "Review"}
+            ],
+            rag_data={
+                "project_constraints": {"Team meetings": "Morning preferred, 1-hour minimum"},
+                "energy_profile": "Peak: 8 AM-12 PM"
+            },
+            calendar_data={"events": [
+                {"start": "09:00", "end": "10:00", "date": "tomorrow"},
+                {"start": "14:00", "end": "15:00", "date": "tomorrow"}
+            ]},
+            expected_behavior="Should respect constraints and find morning slot"
+        )
+    })
+    
+    # Scenario 38: Chronotype-Optimized Week Planning
+    scenarios.append({
+        "id": 38,
+        "category": "multi_tool",
+        "name": "Chronotype-Optimized Week Planning",
+        "query": "Optimize my weekly schedule based on my chronotype",
+        "context": ScenarioContext(
+            existing_events=[
+                {"day": "Monday", "time": "2:00 PM", "title": "Meeting"},
+                {"day": "Wednesday", "time": "3:00 PM", "title": "Call"}
+            ],
+            rag_data={
+                "chronotype": "Morning_Lark_With_Afternoon_Slump",
+                "energy_profile": "Peak: 4:30-6 AM, 8 AM-12 PM; Low: 1-4 PM"
+            },
+            calendar_data={"events": [
+                {"day": "Monday", "start": "14:00"},
+                {"day": "Wednesday", "start": "15:00"}
+            ]},
+            expected_behavior="Should suggest moving afternoon meetings to morning"
+        )
+    })
+    
+    # Scenario 39: Multi-Course Deadline Management
+    scenarios.append({
+        "id": 39,
+        "category": "multi_tool",
+        "name": "Multi-Course Deadline Management",
+        "query": "Help me schedule study time for all my upcoming deadlines",
+        "context": ScenarioContext(
+            existing_events=[
+                {"day": "Tuesday", "time": "10:00-12:00 PM", "title": "Class"},
+                {"day": "Thursday", "time": "2:00-4:00 PM", "title": "Lab"}
+            ],
+            rag_data={
+                "deadlines": {
+                    "AI Project": "Friday",
+                    "ML Assignment": "Next Monday",
+                    "CV Project": "Next Wednesday"
+                },
+                "energy_profile": "Peak: 8 AM-12 PM",
+                "courses": ["AI System Design", "Machine Learning", "Computer Vision"]
+            },
+            calendar_data={"events": [
+                {"day": "Tuesday", "start": "10:00", "end": "12:00"},
+                {"day": "Thursday", "start": "14:00", "end": "16:00"}
+            ]},
+            expected_behavior="Should create prioritized study schedule for all deadlines"
+        )
+    })
+    
+    # Scenario 40: Comprehensive Day Optimization
+    scenarios.append({
+        "id": 40,
+        "category": "multi_tool",
+        "name": "Comprehensive Day Optimization",
+        "query": "Optimize my entire day tomorrow considering energy, deadlines, and existing commitments",
+        "context": ScenarioContext(
+            existing_events=[
+                {"time": "Tomorrow 9:00-10:00 AM", "title": "Standup"},
+                {"time": "Tomorrow 3:00-4:00 PM", "title": "Client Call"}
+            ],
+            rag_data={
+                "energy_profile": "Peak: 8 AM-12 PM; Low: 1-4 PM; Recovery: 4-7 PM",
+                "deadlines": {"Important Project": "Tomorrow EOD"},
+                "skills": {"Python": "Expert", "JavaScript": "Intermediate"},
+                "preferences": {"deep_work_blocks": "2 hours minimum"}
+            },
+            calendar_data={"events": [
+                {"start": "09:00", "end": "10:00", "date": "tomorrow"},
+                {"start": "15:00", "end": "16:00", "date": "tomorrow"}
+            ]},
+            expected_behavior="Should create comprehensive optimized schedule using all available data"
         )
     })
     
@@ -852,7 +1249,7 @@ def run_comprehensive_evaluation():
     
     print(f"Session ID: {session_id}")
     print(f"Total Scenarios: {len(scenarios)}")
-    print(f"Categories: Time Logic (5), RAG Retrieval (5), Calendar Tools (5), Multi-Tool (3)")
+    print(f"Categories: Time Logic (10), RAG Retrieval (10), Calendar Tools (10), Multi-Tool (10)")
     print("\n" + "="*80 + "\n")
     
     # Execute scenarios
@@ -916,10 +1313,10 @@ def run_comprehensive_evaluation():
         timestamp=timestamp,
         total_scenarios=len(scenarios),
         categories={
-            "time_logic": 5,
-            "rag_retrieval": 5,
-            "calendar_tools": 5,
-            "multi_tool": 3
+            "time_logic": 10,
+            "rag_retrieval": 10,
+            "calendar_tools": 10,
+            "multi_tool": 10
         },
         scenarios=results,
         summary=summary

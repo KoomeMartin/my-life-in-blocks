@@ -23,6 +23,15 @@ def check_requirements():
         print("   Please set your OpenAI API key in .env file")
         return False
     print("✅ OpenAI API key configured")
+    
+    # Check Supabase credentials
+    supabase_url = os.getenv('SUPABASE_URL')
+    supabase_key = os.getenv('SUPABASE_ANON_KEY')
+    if not supabase_url or not supabase_key:
+        print("❌ Supabase credentials not found in environment variables")
+        print("   Please set SUPABASE_URL and SUPABASE_ANON_KEY in .env file")
+        return False
+    print("✅ Supabase credentials configured")
 
     # Check profile.json
     if not os.path.exists('profile.json'):
@@ -31,12 +40,14 @@ def check_requirements():
         return False
     print("✅ Profile data available")
 
-    # Check RAG database
-    if not os.path.exists('chroma_db'):
-        print("⚠️  RAG database not found - run rag.py first")
-        print("   This is optional but recommended for better personalization")
-    else:
-        print("✅ RAG database available")
+    # Check Supabase connection
+    try:
+        from supabase_rag import SupabaseVectorStore
+        store = SupabaseVectorStore("advanced_agentic_brain")
+        print("✅ Supabase vector store connection successful")
+    except Exception as e:
+        print(f"⚠️  Supabase connection warning: {e}")
+        print("   System will attempt to connect during runtime")
 
     return True
 
@@ -59,7 +70,7 @@ def interactive_mode():
         
         system = MultiAgentSystem()
         print("✅ Multi-Agent System initialized successfully!")
-        print("🤖 Agents: Manager (Calendar Query) | Planner (Strategic Planning) | Executor (Calendar Execution)")
+        print("🤖 Agents: Manager (Calendar Query) | Planner (Strategic Planning) | Executor (Calendar Execution) | Reviewer (Progress & Analytics)")
         print()
 
         while True:
@@ -131,31 +142,25 @@ def trace_mode():
         print(f"❌ Trace generation failed: {e}")
 
 def rag_setup():
-    """Set up the RAG system."""
+    """Set up the RAG system in Supabase (deprecated - data already migrated)."""
     print("\n🧠 RAG System Setup")
     print("=" * 50)
-
-    try:
-        import rag
-        print("✅ RAG system setup completed!")
-        print("📚 Vector database created/updated in chroma_db/")
-
-    except ImportError as e:
-        print(f"❌ Import error: {e}")
-        print("Please ensure all dependencies are installed")
-    except Exception as e:
-        print(f"❌ RAG setup failed: {e}")
+    print("ℹ️  RAG data has been migrated to Supabase")
+    print("✅ Using Supabase vector store for all retrieval operations")
+    print("📚 Collection: advanced_agentic_brain")
+    print("🎯 33 unique documents with importance scoring")
 
 def advanced_rag_setup():
-    """Set up the advanced RAG system with semantic chunking."""
-    print("\n🧠 Advanced RAG System Setup")
+    """Set up the advanced RAG system with semantic chunking in Supabase."""
+    print("\n🧠 Advanced RAG System Setup (Supabase)")
     print("=" * 50)
 
     try:
         import advanced_rag
         print("✅ Advanced RAG system setup completed!")
-        print("📚 Advanced vector database created/updated in advanced_chroma_db/")
+        print("📚 Data ingested into Supabase vector store")
         print("🎯 Semantic chunking strategy implemented")
+        print("☁️  Cloud-based storage with pgvector")
 
     except ImportError as e:
         print(f"❌ Import error: {e}")

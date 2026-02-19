@@ -1,0 +1,1693 @@
+{
+  "session_id": "eval_20260218_174905",
+  "timestamp": "2026-02-18T17:49:05.624605",
+  "total_scenarios": 18,
+  "categories": {
+    "time_logic": 5,
+    "rag_retrieval": 5,
+    "calendar_tools": 5,
+    "multi_tool": 3
+  },
+  "scenarios": [
+    {
+      "scenario_id": 1,
+      "category": "time_logic",
+      "name": "Adjacent Events - No Conflict",
+      "query": "Am I available at 1:00 PM for 30 minutes?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "12:00-1:00 PM",
+            "title": "AI System Design Office Hour"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "12:00",
+              "end": "13:00"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou are NOT available at 1:00 PM due to: **\"Intro to ML Office Hour (Brandone)\"** which overlaps from 3:00 PM to 4:00 PM.",
+      "claims_extracted": [
+        {
+          "claim_text": "You are NOT available at 1:00 PM due to: \"Intro to ML Office Hour (Brandone)\" which overlaps from 3:00 PM to 4:00 PM.",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '12:00', 'end': '13:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 0 hallucinations",
+      "expected_behavior": "Should identify as available (adjacent, not overlapping)",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 2,
+      "category": "time_logic",
+      "name": "Separate Events - Future Event",
+      "query": "Check my availability at 1:00 PM",
+      "context": {
+        "existing_events": [
+          {
+            "time": "3:00-4:00 PM",
+            "title": "Marc Langchain Project"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "15:00",
+              "end": "16:00"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou are NOT available at 1:00 PM due to: **\"Intro to ML Office Hour (Brandone)\"** which overlaps from 3:00 PM to 4:00 PM.",
+      "claims_extracted": [
+        {
+          "claim_text": "You are NOT available at 1:00 PM due to: \"Intro to ML Office Hour (Brandone)\" which overlaps from 3:00 PM to 4:00 PM.",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '15:00', 'end': '16:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 0 hallucinations",
+      "expected_behavior": "Should identify as available (event is later)",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 3,
+      "category": "time_logic",
+      "name": "Actual Overlap - Partial Conflict",
+      "query": "Am I free from 1:00 PM to 2:00 PM?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "12:30-1:30 PM",
+            "title": "Team Meeting"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "12:30",
+              "end": "13:30"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou are NOT available from 1:00 PM to 2:00 PM due to: **\"Intro to ML Office Hour (Brandone)\"** which overlaps from 3:00 PM to 4:00 PM.",
+      "claims_extracted": [
+        {
+          "claim_text": "You are NOT available from 1:00 PM to 2:00 PM due to: \"Intro to ML Office Hour (Brandone)\" which overlaps from 3:00 PM to 4:00 PM.",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '12:30', 'end': '13:30'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 0 hallucinations",
+      "expected_behavior": "Should identify conflict (overlap from 1:00-1:30 PM)",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 4,
+      "category": "time_logic",
+      "name": "Multiple Adjacent Events",
+      "query": "Am I available at 2:00 PM?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "1:00-2:00 PM",
+            "title": "Meeting A"
+          },
+          {
+            "time": "2:00-3:00 PM",
+            "title": "Meeting B"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "13:00",
+              "end": "14:00"
+            },
+            {
+              "start": "14:00",
+              "end": "15:00"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou are available at 2:00 PM. \n\nNote: You have another event today at 4:00 PM - 5:00 PM for the **\"Discussion on Intro to ML Assignment.\"**",
+      "claims_extracted": [
+        {
+          "claim_text": "You are available at 2:00 PM.",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00'}, {'start': '14:00', 'end': '15:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "Note: You have another event today at 4:00 PM - 5:00 PM for the \"Discussion on Intro to ML Assignment.\"",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00'}, {'start': '14:00', 'end': '15:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 2 claims, 0 hallucinations",
+      "expected_behavior": "Should identify as not available (meeting starts at 2:00 PM)",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 5,
+      "category": "time_logic",
+      "name": "Complex Day Schedule - Find Available Slot",
+      "query": "Find me a 1-hour slot between 9 AM and 5 PM today",
+      "context": {
+        "existing_events": [
+          {
+            "time": "9:00-10:00 AM",
+            "title": "Standup"
+          },
+          {
+            "time": "11:00 AM-12:00 PM",
+            "title": "Review"
+          },
+          {
+            "time": "2:00-3:00 PM",
+            "title": "Client Call"
+          },
+          {
+            "time": "4:00-5:00 PM",
+            "title": "Team Sync"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "09:00",
+              "end": "10:00"
+            },
+            {
+              "start": "11:00",
+              "end": "12:00"
+            },
+            {
+              "start": "14:00",
+              "end": "15:00"
+            },
+            {
+              "start": "16:00",
+              "end": "17:00"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nHere are the available 1-hour slots between 9 AM and 5 PM today:\n\n1. **9:00 AM - 10:00 AM** (Free)\n2. **11:50 AM - 12:00 PM** (Free)\n3. **1:30 PM - 2:00 PM** (Free)\n4. **2:00 PM - 3:00 PM** (Free)\n\nYou can choose any of these slots for your meeting or task.",
+      "claims_extracted": [
+        {
+          "claim_text": "Here are the available 1-hour slots between 9 AM and 5 PM today:",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. 9:00 AM - 10:00 AM (Free)",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. 11:50 AM - 12:00 PM (Free)",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "3. 1:30 PM - 2:00 PM (Free)",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "4. 2:00 PM - 3:00 PM (Free)",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "You can choose any of these slots for your meeting or task.",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'end': '10:00'}, {'start': '11:00', 'end': '12:00'}, {'start': '14:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 6 claims, 0 hallucinations",
+      "expected_behavior": "Should identify available slots: 10-11 AM, 12-2 PM, 3-4 PM",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 6,
+      "category": "rag_retrieval",
+      "name": "Energy Pattern Retrieval",
+      "query": "When is my peak productivity time?",
+      "context": {
+        "existing_events": [],
+        "rag_data": {
+          "energy_profile": "Peak: 4:30-6 AM, 8 AM-12 PM; Low: 1-4 PM"
+        },
+        "calendar_data": null
+      },
+      "agent_response": "📊 **REVIEWER AGENT RESPONSE:**\n\nYour peak productivity time is from **4:30 AM to 6:00 AM**, where you experience peak cognitive load suitable for tasks involving math and complex coding. \n\nAdditionally, you have another productive period from **8:00 AM to 12:00 PM** for academic execution, such as attending classes. \n\nIt's advisable to avoid high-cognitive tasks between **1:00 PM and 4:00 PM**, as this is your low-energy valley.",
+      "claims_extracted": [
+        {
+          "claim_text": "Your peak productivity time is from 4:30 AM to 6:00 AM, where you experience peak cognitive load suitable for tasks involving math and complex coding.",
+          "claim_type": "time",
+          "supported": false,
+          "evidence": "No supporting evidence found",
+          "evidence_source": "none",
+          "confidence": 0.0
+        },
+        {
+          "claim_text": "Additionally, you have another productive period from 8:00 AM to 12:00 PM for academic execution, such as attending classes.",
+          "claim_type": "time",
+          "supported": false,
+          "evidence": "No supporting evidence found",
+          "evidence_source": "none",
+          "confidence": 0.0
+        },
+        {
+          "claim_text": "It's advisable to avoid high-cognitive tasks between 1:00 PM and 4:00 PM, as this is your low-energy valley.",
+          "claim_type": "time",
+          "supported": false,
+          "evidence": "No supporting evidence found",
+          "evidence_source": "none",
+          "confidence": 0.0
+        }
+      ],
+      "groundedness_score": 0.0,
+      "confidence_level": "critical",
+      "hallucinations_detected": [
+        "Your peak productivity time is from 4:30 AM to 6:00 AM, where you experience peak cognitive load suitable for tasks involving math and complex coding.",
+        "Additionally, you have another productive period from 8:00 AM to 12:00 PM for academic execution, such as attending classes.",
+        "It's advisable to avoid high-cognitive tasks between 1:00 PM and 4:00 PM, as this is your low-energy valley."
+      ],
+      "missing_information": [],
+      "reasoning": "Score based on 3 claims, 3 hallucinations",
+      "expected_behavior": "Should accurately retrieve energy patterns from RAG",
+      "test_result": "FAIL",
+      "notes": "Agent: reviewer"
+    },
+    {
+      "scenario_id": 7,
+      "category": "rag_retrieval",
+      "name": "Course Deadline Retrieval",
+      "query": "When is my AI Systems Design project due?",
+      "context": {
+        "existing_events": [],
+        "rag_data": {
+          "deadlines": {
+            "AI Systems Design": "2026-02-15"
+          }
+        },
+        "calendar_data": null
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nI couldn't find any information regarding the due date for your AI Systems Design project in your calendar. You may want to check your course materials or reach out to your instructor for the specific due date.",
+      "claims_extracted": [
+        {
+          "claim_text": "I couldn't find any information regarding the due date for your AI Systems Design project in your calendar. You may want to check your course materials or reach out to your instructor for the specific due date.",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 0 hallucinations",
+      "expected_behavior": "Should retrieve accurate deadline from RAG",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 8,
+      "category": "rag_retrieval",
+      "name": "Skill/Competency Query",
+      "query": "What programming languages am I proficient in?",
+      "context": {
+        "existing_events": [],
+        "rag_data": {
+          "skills": [
+            "Python",
+            "JavaScript",
+            "SQL",
+            "Java"
+          ]
+        },
+        "calendar_data": null
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou are proficient in Python, which is your area of expertise. If you have any other specific languages in mind or need assistance with a particular programming task, feel free to ask!",
+      "claims_extracted": [
+        {
+          "claim_text": "You are proficient in Python, which is your area of expertise. If you have any other specific languages in mind or need assistance with a particular programming task, feel free to ask!",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 0 hallucinations",
+      "expected_behavior": "Should list skills from profile accurately",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 9,
+      "category": "rag_retrieval",
+      "name": "Low Energy Period Awareness",
+      "query": "Should I schedule a deep work session at 2 PM?",
+      "context": {
+        "existing_events": [],
+        "rag_data": {
+          "energy_profile": "Low energy: 1-4 PM"
+        },
+        "calendar_data": null
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nScheduling a deep work session at 2 PM is not advisable. This time falls within your low-energy period (1:00 PM to 4:00 PM), which may affect your productivity and focus. \n\nIt would be more beneficial to schedule your deep work sessions during your peak productivity times, either between 4:30 AM to 6:00 AM or 8:00 AM to 12:00 PM. Would you like to find a suitable time for a deep work session during those periods?",
+      "claims_extracted": [
+        {
+          "claim_text": "Scheduling a deep work session at 2 PM is not advisable. This time falls within your low-energy period (1:00 PM to 4:00 PM), which may affect your productivity and focus.",
+          "claim_type": "time",
+          "supported": false,
+          "evidence": "No supporting evidence found",
+          "evidence_source": "none",
+          "confidence": 0.0
+        }
+      ],
+      "groundedness_score": 0.0,
+      "confidence_level": "critical",
+      "hallucinations_detected": [
+        "Scheduling a deep work session at 2 PM is not advisable. This time falls within your low-energy period (1:00 PM to 4:00 PM), which may affect your productivity and focus."
+      ],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 1 hallucinations",
+      "expected_behavior": "Should recommend against 2 PM based on energy data",
+      "test_result": "FAIL",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 10,
+      "category": "rag_retrieval",
+      "name": "Multi-Constraint Planning",
+      "query": "Schedule study session considering my energy and upcoming deadlines",
+      "context": {
+        "existing_events": [],
+        "rag_data": {
+          "energy_profile": "Peak: 8 AM-12 PM",
+          "deadlines": {
+            "AI Project": "2026-02-10"
+          }
+        },
+        "calendar_data": null
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nBased on your energy patterns and upcoming deadlines, here’s a structured plan for a study session:\n\n### Available Time Slots:\n1. **9:00 AM - 10:00 AM** (Before class)\n2. **11:50 AM - 12:00 PM** (Before class)\n3. **1:30 PM - 2:30 PM** (Low energy tasks)\n4. **3:00 PM - 4:00 PM** (After class)\n\n### Recommended Study Session:\nGiven your peak productivity times and the need to avoid low-energy periods, I recommend scheduling your study session as follows:\n\n🎯 **RECOMMENDED TIME**: **9:00 AM - 10:00 AM**  \n👥 **ATTENDEES**: **Self**  \n📝 **TITLE**: **Study Session for AI Systems Design Project**  \n⏱️ **DURATION**: **60 minutes**  \n📅 **CALENDAR**: **mkoome@andrew.cmu.edu**  \n💡 **RATIONALE**: This time is optimal as it falls within your peak productivity period before your classes, ensuring maximum focus and efficiency.\n\nWould you like to proceed with this scheduling plan?",
+      "claims_extracted": [
+        {
+          "claim_text": "Based on your energy patterns and upcoming deadlines, here’s a structured plan for a study session:",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. 9:00 AM - 10:00 AM (Before class)",
+          "claim_type": "deadline",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. 11:50 AM - 12:00 PM (Before class)",
+          "claim_type": "deadline",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "3. 1:30 PM - 2:30 PM (Low energy tasks)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "RAG data: {'energy_profile': 'Peak: 8 AM-12 PM', 'deadlines': {'AI Project': '2026-02-10'}}",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "Given your peak productivity times and the need to avoid low-energy periods, I recommend scheduling your study session as follows:",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "RECOMMENDED TIME: 9:00 AM - 10:00 AM",
+          "claim_type": "recommendation",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "ATTENDEES: Self",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "DURATION: 60 minutes",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "RATIONALE: This time is optimal as it falls within your peak productivity period before your classes, ensuring maximum focus and efficiency.",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 9 claims, 0 hallucinations",
+      "expected_behavior": "Should use both energy and deadline constraints",
+      "test_result": "PASS",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 11,
+      "category": "calendar_tools",
+      "name": "Simple Event Retrieval",
+      "query": "What meetings do I have today?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "9:00 AM",
+            "title": "Standup"
+          },
+          {
+            "time": "2:00 PM",
+            "title": "Review"
+          },
+          {
+            "time": "4:00 PM",
+            "title": "Client Call"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "09:00",
+              "title": "Standup"
+            },
+            {
+              "start": "14:00",
+              "title": "Review"
+            },
+            {
+              "start": "16:00",
+              "title": "Client Call"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nHere are your meetings scheduled for today, February 18, 2026:\n\n1. **[Artificial Intelligence System Design :: 04652 A](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMxNmdxbWNkYjE2NWhqMm9waTZzc2o2ZDFsNmdyNjRlYjNjb3FqOHA5aGNkaTY2Y2I0NnNfMjAyNjAyMThUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 8:00 AM - 9:50 AM\n\n2. **[Applied Computer Vision :: 18799 RW](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMyNmNxamVlOW02bGk2YWUzM2Njb2o0ZHBtYzhzMzZjaG82MHIzNGNiM2M0cGpnZHBuNmtfMjAyNjAyMThUMDgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 10:00 AM - 11:50 AM\n\n3. **[Spring 2026 Student-led Townhall](https://www.google.com/calendar/event?eid=MHZsbmU1a2Vsa2Nmdm9waWViMDkybjYzdDIgbWtvb21lQGFuZHJldy5jbXUuZWR1)**\n   - **Time**: 12:00 PM - 1:30 PM\n\n4. **[Intro to ML Office Hour (Brandone)](https://www.google.com/calendar/event?eid=MnNmOGhvZ2p2ZGdjaGNmcGkzaXJzOGphNnNfMjAyNjAyMThUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 3:00 PM - 4:00 PM\n\n5. **[Discussion on Intro to ML Assignment](https://www.google.com/calendar/event?eid=aWhlbnR1c2g1YjNrcW83cm5mOXUycWFkYjAgbWtvb21lQGFuZHJldy5jbXUuZWR1)**\n   - **Time**: 4:00 PM - 5:00 PM\n\n6. **[Agentic AI Office Hour (Jean Claude)](https://www.google.com/calendar/event?eid=Mm9mazRmdjhkMXA5cnVxMzM2NHZlcDFrOGtfMjAyNjAyMThUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 6:00 PM - 7:00 PM\n\n7. **[Introduction to Machine Learning for Engineers :: 18661 2](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFrY2RnbTRkMWxjNWo2Y3AzMTc0b202ZGozNmRoNmFwOXA3NG8zZ2NwbjZjcW04ZHIzY2NfMjAyNjAyMThUMTcwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 7:00 PM - 8:50 PM\n\n8. **[Tech Startups: Tools and Techniques :: 04616 A](https://www.google.com/calendar/event?eid=Xzk1aG0ycjM2NmNxamNkcGw3MWg2NGNoa2M0cm0yY2hnNzRvajRvajJjOHAzZW85aDZrc2oyYzFwNmtfMjAyNjAyMThUMTkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)**\n   - **Time**: 9:00 PM - 10:20 PM\n\nIf you need to make any adjustments or have further questions, let me know!",
+      "claims_extracted": [
+        {
+          "claim_text": "Here are your meetings scheduled for today, February 18, 2026:",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. [Artificial Intelligence System Design :: 04652 A](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMxNmdxbWNkYjE2NWhqMm9waTZzc2o2ZDFsNmdyNjRlYjNjb3FqOHA5aGNkaTY2Y2I0NnNfMjAyNjAyMThUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. [Applied Computer Vision :: 18799 RW](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMyNmNxamVlOW02bGk2YWUzM2Njb2o0ZHBtYzhzMzZjaG82MHIzNGNiM2M0cGpnZHBuNmtfMjAyNjAyMThUMDgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "3. [Spring 2026 Student-led Townhall](https://www.google.com/calendar/event?eid=MHZsbmU1a2Vsa2Nmdm9waWViMDkybjYzdDIgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "4. [Intro to ML Office Hour (Brandone)](https://www.google.com/calendar/event?eid=MnNmOGhvZ2p2ZGdjaGNmcGkzaXJzOGphNnNfMjAyNjAyMThUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "5. [Discussion on Intro to ML Assignment](https://www.google.com/calendar/event?eid=aWhlbnR1c2g1YjNrcW83cm5mOXUycWFkYjAgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "6. [Agentic AI Office Hour (Jean Claude)](https://www.google.com/calendar/event?eid=Mm9mazRmdjhkMXA5cnVxMzM2NHZlcDFrOGtfMjAyNjAyMThUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "7. [Introduction to Machine Learning for Engineers :: 18661 2](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFrY2RnbTRkMWxjNWo2Y3AzMTc0b202ZGozNmRoNmFwOXA3NG8zZ2NwbjZjcW04ZHIzY2NfMjAyNjAyMThUMTcwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "8. [Tech Startups: Tools and Techniques :: 04616 A](https://www.google.com/calendar/event?eid=Xzk1aG0ycjM2NmNxamNkcGw3MWg2NGNoa2M0cm0yY2hnNzRvajRvajJjOHAzZW85aDZrc2oyYzFwNmtfMjAyNjAyMThUMTkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '09:00', 'title': 'Standup'}, {'start': '14:00', 'title': 'Review'}, {'start':",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "If you need to make any adjustments or have further questions, let me know!",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 10 claims, 0 hallucinations",
+      "expected_behavior": "Should list all meetings accurately",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 12,
+      "category": "calendar_tools",
+      "name": "Multi-Day Availability Check",
+      "query": "Am I free tomorrow afternoon?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "Tomorrow 2:00-3:00 PM",
+            "title": "Meeting"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "14:00",
+              "end": "15:00",
+              "date": "tomorrow"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nYou have the following meetings scheduled for tomorrow afternoon (February 19, 2026):\n\n1. **Applied Computer Vision OH (Eleanor)**\n   - **Time**: 2:00 PM - 3:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MHRwb2t1dDc0MHM5OHBsaXMxMDk3bXF0ZDBfMjAyNjAyMTlUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n2. **Marc Langchain Project**\n   - **Time**: 3:00 PM - 4:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n3. **Intro to ML Office Hours (Victor)**\n   - **Time**: 4:00 PM - 5:30 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n4. **Computer Vision: Group 4 Catch-up**\n   - **Time**: 5:30 PM - 5:45 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MzhzNmZwNXYwOGI1ZDBmamVxcGo1anJ1djYgbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n5. **Agentic AI Office Hours (Sarah Moses)**\n   - **Time**: 6:00 PM - 7:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Nm90azRkYWpkdjVpdnRtMnBwaWpyM3ZvOGZfMjAyNjAyMTlUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n❌ You are NOT available tomorrow afternoon due to overlapping meetings from 2:00 PM to 5:45 PM. If you need to schedule something else, please let me know!",
+      "claims_extracted": [
+        {
+          "claim_text": "You have the following meetings scheduled for tomorrow afternoon (February 19, 2026):",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MHRwb2t1dDc0MHM5OHBsaXMxMDk3bXF0ZDBfMjAyNjAyMTlUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "3. Intro to ML Office Hours (Victor)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "4. Computer Vision: Group 4 Catch-up",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MzhzNmZwNXYwOGI1ZDBmamVxcGo1anJ1djYgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Nm90azRkYWpkdjVpdnRtMnBwaWpyM3ZvOGZfMjAyNjAyMTlUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "You are NOT available tomorrow afternoon due to overlapping meetings from 2:00 PM to 5:45 PM. If you need to schedule something else, please let me know!",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 9 claims, 0 hallucinations",
+      "expected_behavior": "Should check tomorrow's afternoon availability",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 13,
+      "category": "calendar_tools",
+      "name": "Event Creation Verification",
+      "query": "Schedule meeting with John at 3 PM tomorrow for 1 hour",
+      "context": {
+        "existing_events": [],
+        "rag_data": null,
+        "calendar_data": null
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nYou have a conflict for the proposed meeting time with John at 3 PM tomorrow (February 19, 2026) due to the following scheduled event:\n\n- **Intro to ML Office Hours (Victor)**\n  - **Time**: 4:00 PM - 5:30 PM\n\nGiven your energy patterns, it is also advisable to avoid scheduling meetings during your low-energy period (1:00 PM - 4:00 PM). \n\n### Alternative Suggestions:\n1. **9:00 AM - 10:00 AM** (Peak energy)\n2. **10:30 AM - 11:30 AM** (Peak energy)\n3. **4:00 PM - 5:00 PM** (Recovery period)\n\nWould you like to schedule the meeting with John at one of these alternative times?",
+      "claims_extracted": [
+        {
+          "claim_text": "You have a conflict for the proposed meeting time with John at 3 PM tomorrow (February 19, 2026) due to the following scheduled event:",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Intro to ML Office Hours (Victor)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "Given your energy patterns, it is also advisable to avoid scheduling meetings during your low-energy period (1:00 PM - 4:00 PM).",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. 9:00 AM - 10:00 AM (Peak energy)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. 10:30 AM - 11:30 AM (Peak energy)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 5 claims, 0 hallucinations",
+      "expected_behavior": "Should create event and confirm details",
+      "test_result": "PASS",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 14,
+      "category": "calendar_tools",
+      "name": "Conflict Detection Before Scheduling",
+      "query": "Can I schedule a 2-hour meeting starting at 1 PM?",
+      "context": {
+        "existing_events": [
+          {
+            "time": "2:00-3:00 PM",
+            "title": "Existing Meeting"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "start": "14:00",
+              "end": "15:00"
+            }
+          ]
+        }
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nYou cannot schedule a 2-hour meeting starting at 1 PM tomorrow (February 19, 2026) due to the following conflicts:\n\n1. **Marc Langchain Project**\n   - **Time**: 3:00 PM - 4:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n2. **Intro to ML Office Hours (Victor)**\n   - **Time**: 4:00 PM - 5:30 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n### Alternative Suggestions:\n- **9:00 AM - 11:00 AM** (Peak energy)\n- **10:30 AM - 12:30 PM** (Peak energy)\n- **4:00 PM - 6:00 PM** (Recovery period)\n\nWould you like to schedule the meeting at one of these alternative times?",
+      "claims_extracted": [
+        {
+          "claim_text": "You cannot schedule a 2-hour meeting starting at 1 PM tomorrow (February 19, 2026) due to the following conflicts:",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. Intro to ML Office Hours (Victor)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '15:00'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 9:00 AM - 11:00 AM (Peak energy)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 10:30 AM - 12:30 PM (Peak energy)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 6 claims, 0 hallucinations",
+      "expected_behavior": "Should identify conflict and suggest alternative",
+      "test_result": "PASS",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 15,
+      "category": "calendar_tools",
+      "name": "Weekly Schedule Overview",
+      "query": "Show me my schedule for this week",
+      "context": {
+        "existing_events": [
+          {
+            "day": "Monday",
+            "time": "9:00 AM",
+            "title": "Standup"
+          },
+          {
+            "day": "Wednesday",
+            "time": "2:00 PM",
+            "title": "Review"
+          },
+          {
+            "day": "Friday",
+            "time": "4:00 PM",
+            "title": "Retro"
+          }
+        ],
+        "rag_data": null,
+        "calendar_data": {
+          "events": [
+            {
+              "day": "Monday",
+              "start": "09:00",
+              "title": "Standup"
+            },
+            {
+              "day": "Wednesday",
+              "start": "14:00",
+              "title": "Review"
+            },
+            {
+              "day": "Friday",
+              "start": "16:00",
+              "title": "Retro"
+            }
+          ]
+        }
+      },
+      "agent_response": "📅 **MANAGER AGENT RESPONSE:**\n\nHere is your schedule for the week of February 18 to February 25, 2026:\n\n### **Thursday, February 18, 2026**\n1. **Artificial Intelligence System Design :: 04652 A**\n   - **Time**: 8:00 AM - 9:50 AM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMxNmdxbWNkYjE2NWhqMm9waTZzc2o2ZDFzNmdyNjRlYjNjb3FqOHA5aGNkaTY2Y2I0NnNfMjAyNjAyMThUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n2. **Applied Computer Vision :: 18799 RW**\n   - **Time**: 10:00 AM - 11:50 AM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMyNmNxamVlOW02bGk2YWUzM2Njb2o0ZHBtYzhzMzZjaG82MHIzNGNiM2M0cGpnZHBuNmtfMjAyNjAyMThUMDgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n3. **Spring 2026 Student-led Townhall**\n   - **Time**: 12:00 PM - 1:30 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MHZsbmU1a2Vsa2Nmdm9waWViMDkybjYzdDIgbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n4. **Intro to ML Office Hour (Brandone)**\n   - **Time**: 3:00 PM - 4:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MnNmOGhvZ2p2ZGdjaGNmcGkzaXJzOGphNnNfMjAyNjAyMThUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n5. **Discussion on Intro to ML Assignment**\n   - **Time**: 4:00 PM - 5:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=aWhlbnR1c2g1YjNrcW83cm5mOXUycWFkYjAgbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n6. **Agentic AI Office Hour (Jean Claude)**\n   - **Time**: 6:00 PM - 7:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Mm9mazRmdjhkMXA5cnVxMzM2NHZlcDFrOGtfMjAyNjAyMThUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n7. **Introduction to Machine Learning for Engineers :: 18661 2**\n   - **Time**: 7:00 PM - 8:50 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFrY2RnbTRkMWxjNWo2Y3AzMTc0b202ZGozNmRoNmFwOXA3NG8zZ2NwbjZjcW04ZHIzY2NfMjAyNjAyMThUMTcwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n8. **Tech Startups: Tools and Techniques :: 04616 A**\n   - **Time**: 9:00 PM - 10:20 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjM2NmNxamNkcGw3MWg2NGNoa2M0cm0yY2hnNzRvajRvajJjOHAzZW85aDZrc2oyYzFwNmtfMjAyNjAyMThUMTkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n### **Friday, February 19, 2026**\n1. **Agentic AI: Foundations and Applications :: 04801 W3**\n   - **Time**: 8:00 AM - 9:50 AM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFoY2tyMzBkOWg2MWhqOGRyMzcwcDNhb3I2Y3BpbTJwOWdja3BqaWNwbGNkaTNpb2o0Nm9fMjAyNjAyMTlUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n2. **AI System Design Project**\n   - **Time**: 11:00 AM - 12:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NDB0Z2VzMHFsbDlhbnJycTZoOHNydmVwYzBfMjAyNjAyMTlUMDkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n3. **AI System Design Office Hour (Naseer)**\n   - **Time**: 12:00 PM - 1:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NWkya2w3ZDNwZW80bm5kYTBzMWxhNGNzM2pfMjAyNjAyMTlUMTAwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n4. **Applied Computer Vision OH (Eleanor)**\n   - **Time**: 2:00 PM - 3:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MHRwb2t1dDc0MHM5OHBsaXMxMDk3bXF0ZDBfMjAyNjAyMTlUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n5. **Marc Langchain Project**\n   - **Time**: 3:00 PM - 4:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n6. **Intro to ML Office Hours (Victor)**\n   - **Time**: 4:00 PM - 5:30 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n7. **Computer Vision: Group 4 Catch-up**\n   - **Time**: 5:30 PM - 5:45 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MzhzNmZwNXYwOGI1ZDBmamVxcGo1anJ1djYgbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n8. **Agentic AI Office Hours (Sarah Moses)**\n   - **Time**: 6:00 PM - 7:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Nm90azRkYWpkdjVpdnRtMnBwaWpyM3ZvOGZfMjAyNjAyMTlUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n### **Saturday, February 20, 2026**\n1. **Computer Vision Project meeting**\n   - **Time**: 8:00 AM - 10:00 AM\n   - [Event Link](https://www.google.com/calendar/event?eid=NDllMjNxZDJscjgwbDkxbWo1dnRoMmdramtfMjAyNjAyMjBUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n2. **AI System Design Office Hours (Naseer)**\n   - **Time**: 12:00 PM - 1:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MmptdXRoZ2I4Y2hqYXA4cHZscWw2dmNmdjFfMjAyNjAyMjBUMTAwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n3. **MSEAI Academic Info Session - Friday 20th Feb 2026**\n   - **Time**: 12:30 PM - 1:15 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MXNxZjViNm02cTcybDhtb29raXZzZ2w1ODggbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n4. **Info. Session on RwandAir’s Graduate Development Program**\n   - **Time**: 2:00 PM - 3:30 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NWlldTc3MnY0cHRkOGZkZGp1a3M0OGFhZm4gbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n5. **Applied Computer Vision Recitation**\n   - **Time**: 2:00 PM - 3:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NXA2M2NqZXM2ZnNxbjA5ZzZwYWZtaDViZWVfMjAyNjAyMjBUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n6. **Meeting with Volunteers for the 2026 Annual Career Fair**\n   - **Time**: 4:00 PM - 5:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=M3ZjNmpzdWM3MjRkMWNvcmRwNWpzb2NsaDAgbWtvb21lQGFuZHJldy5jbXUuZWR1)\n\n7. **International Affairs Committee Meeting**\n   - **Time**: 4:00 PM - 5:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=NTZncGEya3NjbXR1OWpiMWVnN2VkNDFpdnFfMjAyNjAyMjBUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n8. **Introduction to Machine Learning for Engineers :: 18661 RW**\n   - **Time**: 5:00 PM - 6:20 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFnNmhpbTRjcHA2NHM2YXBobTYwbzNhZGI0NmNybTRjMWtjZ3NtMmNqNDY0cTNnYzloNm9fMjAyNjAyMjBUMTUwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\n9. **AI System Design Office Hours (Bernes)**\n   - **Time**: 8:00 PM - 9:00 PM\n   - [Event Link](https://www.google.com/calendar/event?eid=MTNpcTFkbmc0MHBob25ibTFjb3Fzb3Q5YjdfMjAyNjAyMjBUMTgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)\n\nIf you need any further details or adjustments, feel free to ask!",
+      "claims_extracted": [
+        {
+          "claim_text": "Here is your schedule for the week of February 18 to February 25, 2026:",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMxNmdxbWNkYjE2NWhqMm9waTZzc2o2ZDFzNmdyNjRlYjNjb3FqOHA5aGNkaTY2Y2I0NnNfMjAyNjAyMThUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjMyNmNxamVlOW02bGk2YWUzM2Njb2o0ZHBtYzhzMzZjaG82MHIzNGNiM2M0cGpnZHBuNmtfMjAyNjAyMThUMDgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "3. Spring 2026 Student-led Townhall",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MHZsbmU1a2Vsa2Nmdm9waWViMDkybjYzdDIgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "4. Intro to ML Office Hour (Brandone)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MnNmOGhvZ2p2ZGdjaGNmcGkzaXJzOGphNnNfMjAyNjAyMThUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "5. Discussion on Intro to ML Assignment",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=aWhlbnR1c2g1YjNrcW83cm5mOXUycWFkYjAgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Mm9mazRmdjhkMXA5cnVxMzM2NHZlcDFrOGtfMjAyNjAyMThUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "7. Introduction to Machine Learning for Engineers :: 18661 2",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFrY2RnbTRkMWxjNWo2Y3AzMTc0b202ZGozNmRoNmFwOXA3NG8zZ2NwbjZjcW04ZHIzY2NfMjAyNjAyMThUMTcwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "8. Tech Startups: Tools and Techniques :: 04616 A",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjM2NmNxamNkcGw3MWg2NGNoa2M0cm0yY2hnNzRvajRvajJjOHAzZW85aDZrc2oyYzFwNmtfMjAyNjAyMThUMTkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. Agentic AI: Foundations and Applications :: 04801 W3",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFoY2tyMzBkOWg2MWhqOGRyMzcwcDNhb3I2Y3BpbTJwOWdja3BqaWNwbGNkaTNpb2o0Nm9fMjAyNjAyMTlUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NDB0Z2VzMHFsbDlhbnJycTZoOHNydmVwYzBfMjAyNjAyMTlUMDkwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NWkya2w3ZDNwZW80bm5kYTBzMWxhNGNzM2pfMjAyNjAyMTlUMTAwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MHRwb2t1dDc0MHM5OHBsaXMxMDk3bXF0ZDBfMjAyNjAyMTlUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MWc3cmtyODdjYXFybWZwZnY2YWRvYWVjY2VfMjAyNjAyMTlUMTMwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "6. Intro to ML Office Hours (Victor)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NGhuNHFyNjF2aTU1NWc5NHVscnV1aTkyajFfMjAyNjAyMTlUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "7. Computer Vision: Group 4 Catch-up",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MzhzNmZwNXYwOGI1ZDBmamVxcGo1anJ1djYgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Nm90azRkYWpkdjVpdnRtMnBwaWpyM3ZvOGZfMjAyNjAyMTlUMTYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "1. Computer Vision Project meeting",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NDllMjNxZDJscjgwbDkxbWo1dnRoMmdramtfMjAyNjAyMjBUMDYwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MmptdXRoZ2I4Y2hqYXA4cHZscWw2dmNmdjFfMjAyNjAyMjBUMTAwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MXNxZjViNm02cTcybDhtb29raXZzZ2w1ODggbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "4. Info. Session on RwandAir’s Graduate Development Program",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NWlldTc3MnY0cHRkOGZkZGp1a3M0OGFhZm4gbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "5. Applied Computer Vision Recitation",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NXA2M2NqZXM2ZnNxbjA5ZzZwYWZtaDViZWVfMjAyNjAyMjBUMTIwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "6. Meeting with Volunteers for the 2026 Annual Career Fair",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=M3ZjNmpzdWM3MjRkMWNvcmRwNWpzb2NsaDAgbWtvb21lQGFuZHJldy5jbXUuZWR1)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "7. International Affairs Committee Meeting",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=NTZncGEya3NjbXR1OWpiMWVnN2VkNDFpdnFfMjAyNjAyMjBUMTQwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "8. Introduction to Machine Learning for Engineers :: 18661 RW",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=Xzk1aG0ycjFnNmhpbTRjcHA2NHM2YXBobTYwbzNhZGI0NmNybTRjMWtjZ3NtMmNqNDY0cTNnYzloNm9fMjAyNjAyMjBUMTUwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- [Event Link](https://www.google.com/calendar/event?eid=MTNpcTFkbmc0MHBob25ibTFjb3Fzb3Q5YjdfMjAyNjAyMjBUMTgwMDAwWiBta29vbWVAYW5kcmV3LmNtdS5lZHU)",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "If you need any further details or adjustments, feel free to ask!",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'day': 'Monday', 'start': '09:00', 'title': 'Standup'}, {'day': 'Wednesday', 'start': '",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 41 claims, 0 hallucinations",
+      "expected_behavior": "Should provide comprehensive weekly view",
+      "test_result": "PASS",
+      "notes": "Agent: manager"
+    },
+    {
+      "scenario_id": 16,
+      "category": "multi_tool",
+      "name": "Energy-Aware Scheduling with Conflict Check",
+      "query": "Schedule 2-hour deep work session tomorrow during peak energy",
+      "context": {
+        "existing_events": [
+          {
+            "time": "Tomorrow 10:00-11:00 AM",
+            "title": "Meeting"
+          }
+        ],
+        "rag_data": {
+          "energy_profile": "Peak: 8 AM-12 PM"
+        },
+        "calendar_data": {
+          "events": [
+            {
+              "start": "10:00",
+              "end": "11:00",
+              "date": "tomorrow"
+            }
+          ]
+        }
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nAgent stopped due to max iterations.",
+      "claims_extracted": [
+        {
+          "claim_text": "Agent stopped due to max iterations.",
+          "claim_type": "time",
+          "supported": false,
+          "evidence": "No supporting evidence found",
+          "evidence_source": "none",
+          "confidence": 0.0
+        }
+      ],
+      "groundedness_score": 0.0,
+      "confidence_level": "critical",
+      "hallucinations_detected": [
+        "Agent stopped due to max iterations."
+      ],
+      "missing_information": [],
+      "reasoning": "Score based on 1 claims, 1 hallucinations",
+      "expected_behavior": "Should use both RAG energy data and calendar conflicts",
+      "test_result": "FAIL",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 17,
+      "category": "multi_tool",
+      "name": "Deadline-Driven Planning with Calendar Integration",
+      "query": "Help me plan study time for AI project due next week",
+      "context": {
+        "existing_events": [
+          {
+            "day": "Tomorrow",
+            "time": "2:00-4:00 PM",
+            "title": "Meeting"
+          },
+          {
+            "day": "Friday",
+            "time": "3:00-5:00 PM",
+            "title": "Review"
+          }
+        ],
+        "rag_data": {
+          "deadlines": {
+            "AI Project": "Next Friday"
+          },
+          "energy_profile": "Peak: 8 AM-12 PM"
+        },
+        "calendar_data": {
+          "events": [
+            {
+              "start": "14:00",
+              "end": "16:00",
+              "date": "tomorrow"
+            },
+            {
+              "start": "15:00",
+              "end": "17:00",
+              "date": "friday"
+            }
+          ]
+        }
+      },
+      "agent_response": "🎯 **PLANNER AGENT RESPONSE:**\n\nTo plan study time for your AI project due next week, we will focus on scheduling during your peak cognitive load periods. Based on your energy profile, the best times for deep work are:\n\n- **04:30 AM - 06:00 AM** (Peak Cognitive Load)\n- **08:00 AM - 12:00 PM** (Academic Execution)\n\n### Current Schedule Conflicts:\nHere are your existing commitments for the next week:\n\n#### **February 19, 2026 (Friday)**\n- **Agentic AI: Foundations and Applications**: 8:00 AM - 9:50 AM\n- **AI System Design Project**: 11:00 AM - 12:00 PM\n- **AI System Design Office Hour (Naseer)**: 12:00 PM - 1:00 PM\n- **Applied Computer Vision OH (Eleanor)**: 2:00 PM - 3:00 PM\n- **Marc Langchain Project**: 3:00 PM - 4:00 PM\n- **Intro to ML Office Hours (Victor)**: 4:00 PM - 5:30 PM\n- **Computer Vision: Group 4 Catch-up**: 5:30 PM - 5:45 PM\n- **Agentic AI Office Hours (Sarah Moses)**: 6:00 PM - 7:00 PM\n\n#### **February 20, 2026 (Saturday)**\n- **Computer Vision Project meeting**: 8:00 AM - 10:00 AM\n- **AI System Design Office Hours (Naseer)**: 12:00 PM - 1:00 PM\n- **Info. Session on RwandAir’s Graduate Development Program**: 2:00 PM - 3:30 PM\n- **Applied Computer Vision Recitation**: 2:00 PM - 3:00 PM\n- **Meeting with Volunteers for the 2026 Annual Career Fair**: 4:00 PM - 5:00 PM\n- **International Affairs Committee Meeting**: 4:00 PM - 5:00 PM\n\n#### **February 21, 2026 (Sunday)**\n- **Agentic AI Office Hour (Jean Claude)**: 9:00 AM - 10:00 AM\n- **AI System Design Office Hours**: 10:00 AM - 11:00 AM\n- **AI System Design Office Hours**: 2:00 PM - 3:00 PM\n\n### Recommended Study Time Slots:\n1. **February 19, 2026 (Friday)**\n   - **04:30 AM - 06:30 AM** (2 hours)\n   \n2. **February 20, 2026 (Saturday)**\n   - **04:30 AM - 06:30 AM** (2 hours)\n   - **08:00 AM - 10:00 AM** (Already booked, but you can use the time before for study)\n\n3. **February 21, 2026 (Sunday)**\n   - **04:30 AM - 06:30 AM** (2 hours)\n\nWould you like to schedule these study sessions, or do you prefer different time slots?",
+      "claims_extracted": [
+        {
+          "claim_text": "To plan study time for your AI project due next week, we will focus on scheduling during your peak cognitive load periods. Based on your energy profile, the best times for deep work are:",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:30 AM - 06:00 AM (Peak Cognitive Load)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "RAG data: {'deadlines': {'AI Project': 'Next Friday'}, 'energy_profile': 'Peak: 8 AM-12 PM'}",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Agentic AI: Foundations and Applications: 8:00 AM - 9:50 AM",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Intro to ML Office Hours (Victor): 4:00 PM - 5:30 PM",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Computer Vision: Group 4 Catch-up: 5:30 PM - 5:45 PM",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Computer Vision Project meeting: 8:00 AM - 10:00 AM",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Info. Session on RwandAir’s Graduate Development Program: 2:00 PM - 3:30 PM",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Applied Computer Vision Recitation: 2:00 PM - 3:00 PM",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- Meeting with Volunteers for the 2026 Annual Career Fair: 4:00 PM - 5:00 PM",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- International Affairs Committee Meeting: 4:00 PM - 5:00 PM",
+          "claim_type": "event",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '14:00', 'end': '16:00', 'date': 'tomorrow'}, {'start': '15:00', 'end': '17:00",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. February 20, 2026 (Saturday)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 08:00 AM - 10:00 AM (Already booked, but you can use the time before for study)",
+          "claim_type": "deadline",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 12 claims, 0 hallucinations",
+      "expected_behavior": "Should integrate deadline, energy, and availability",
+      "test_result": "PASS",
+      "notes": "Agent: planner"
+    },
+    {
+      "scenario_id": 18,
+      "category": "multi_tool",
+      "name": "Full Context Planning",
+      "query": "Schedule team meeting considering my energy patterns and calendar",
+      "context": {
+        "existing_events": [
+          {
+            "time": "Tomorrow 1:00-2:00 PM",
+            "title": "1-on-1"
+          }
+        ],
+        "rag_data": {
+          "energy_profile": "Peak: 8 AM-12 PM; Low: 1-4 PM"
+        },
+        "calendar_data": {
+          "events": [
+            {
+              "start": "13:00",
+              "end": "14:00",
+              "date": "tomorrow"
+            }
+          ]
+        }
+      },
+      "agent_response": "📊 **REVIEWER AGENT RESPONSE:**\n\nBased on your energy patterns and current calendar, here are the available time slots for scheduling a team meeting:\n\n### **Available Time Slots for Team Meeting**\n1. **February 19, 2026 (Friday)**\n   - **04:30 AM - 06:00 AM** (Peak Cognitive Load)\n   - **06:00 AM - 08:00 AM** (Blocked)\n   - **08:00 AM - 12:00 PM** (Academic Execution)\n   - **04:00 PM - 06:00 PM** (Recovery or Recitation)\n\n2. **February 20, 2026 (Saturday)**\n   - **04:30 AM - 06:00 AM** (Peak Cognitive Load)\n   - **06:00 AM - 08:00 AM** (Blocked)\n   - **08:00 AM - 10:00 AM** (Already booked, but you can use the time before for study)\n   - **04:00 PM - 06:00 PM** (Recovery or Recitation)\n\n3. **February 21, 2026 (Sunday)**\n   - **04:30 AM - 06:00 AM** (Peak Cognitive Load)\n   - **06:00 AM - 08:00 AM** (Blocked)\n   - **08:00 AM - 10:00 AM** (Already booked, but you can use the time before for study)\n   - **04:00 PM - 06:00 PM** (Recovery or Recitation)\n\n### **Recommended Meeting Time**\n- **February 19, 2026 (Friday) at 04:30 AM - 06:00 AM** (Best for peak cognitive load)\n- **February 20, 2026 (Saturday) at 04:30 AM - 06:00 AM** (Best for peak cognitive load)\n- **February 21, 2026 (Sunday) at 04:30 AM - 06:00 AM** (Best for peak cognitive load)\n\nWould you like to schedule the meeting at one of these times, or do you have a specific date and time in mind?",
+      "claims_extracted": [
+        {
+          "claim_text": "Based on your energy patterns and current calendar, here are the available time slots for scheduling a team meeting:",
+          "claim_type": "availability",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:30 AM - 06:00 AM (Peak Cognitive Load)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "RAG data: {'energy_profile': 'Peak: 8 AM-12 PM; Low: 1-4 PM'}",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:00 PM - 06:00 PM (Recovery or Recitation)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "2. February 20, 2026 (Saturday)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Inferred from calendar tool usage in response",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:30 AM - 06:00 AM (Peak Cognitive Load)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "RAG data: {'energy_profile': 'Peak: 8 AM-12 PM; Low: 1-4 PM'}",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 08:00 AM - 10:00 AM (Already booked, but you can use the time before for study)",
+          "claim_type": "deadline",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:00 PM - 06:00 PM (Recovery or Recitation)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:30 AM - 06:00 AM (Peak Cognitive Load)",
+          "claim_type": "energy",
+          "supported": true,
+          "evidence": "RAG data: {'energy_profile': 'Peak: 8 AM-12 PM; Low: 1-4 PM'}",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 08:00 AM - 10:00 AM (Already booked, but you can use the time before for study)",
+          "claim_type": "deadline",
+          "supported": true,
+          "evidence": "Inferred from RAG retrieval patterns in response",
+          "evidence_source": "rag_retrieval",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- 04:00 PM - 06:00 PM (Recovery or Recitation)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- February 19, 2026 (Friday) at 04:30 AM - 06:00 AM (Best for peak cognitive load)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- February 20, 2026 (Saturday) at 04:30 AM - 06:00 AM (Best for peak cognitive load)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        },
+        {
+          "claim_text": "- February 21, 2026 (Sunday) at 04:30 AM - 06:00 AM (Best for peak cognitive load)",
+          "claim_type": "time",
+          "supported": true,
+          "evidence": "Calendar data: {'events': [{'start': '13:00', 'end': '14:00', 'date': 'tomorrow'}]}",
+          "evidence_source": "calendar_tool",
+          "confidence": 1.0
+        }
+      ],
+      "groundedness_score": 1.0,
+      "confidence_level": "excellent",
+      "hallucinations_detected": [],
+      "missing_information": [],
+      "reasoning": "Score based on 13 claims, 0 hallucinations",
+      "expected_behavior": "Should consider all factors for optimal recommendation",
+      "test_result": "PASS",
+      "notes": "Agent: reviewer"
+    }
+  ],
+  "summary": {
+    "total_scenarios": 18,
+    "passed": 15,
+    "failed": 3,
+    "average_groundedness": 0.833,
+    "category_performance": {
+      "time_logic": {
+        "avg_score": 1.0,
+        "passed": 5,
+        "failed": 0
+      },
+      "rag_retrieval": {
+        "avg_score": 0.6,
+        "passed": 3,
+        "failed": 2
+      },
+      "calendar_tools": {
+        "avg_score": 1.0,
+        "passed": 5,
+        "failed": 0
+      },
+      "multi_tool": {
+        "avg_score": 0.667,
+        "passed": 2,
+        "failed": 1
+      }
+    },
+    "recommendations": [
+      "Improve rag_retrieval - score below 0.7",
+      "Review rag_retrieval failures - 2 scenarios failed",
+      "Improve multi_tool - score below 0.7",
+      "Review multi_tool failures - 1 scenarios failed"
+    ]
+  }
+}

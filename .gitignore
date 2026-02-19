@@ -163,9 +163,13 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+.kiro/
 *.swp
 *.swo
 *~
+
+# Streamlit (ignore secrets but keep config)
+.streamlit/secrets.toml
 
 # Temporary files
 *.tmp

@@ -15,9 +15,19 @@ google-auth-oauthlib>=1.0.0
 chromadb>=0.4.0
 python-dotenv>=1.0.0
 
+# Supabase & Vector Database
+supabase==2.3.4
+vecs==0.4.0
+psycopg2-binary==2.9.9
+
 # Utilities
 typing-extensions>=4.0.0
 pydantic>=2.0.0
 
+# Streamlit Web Interface
+streamlit>=1.28.0
+
 # Optional: For enhanced calendar tools (install separately if needed)
 # langchain-google-community
+
+pytz>=2024.1  # Timezone support for Africa/Maputo
