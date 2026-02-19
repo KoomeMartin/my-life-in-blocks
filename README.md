@@ -1,8 +1,22 @@
 # My Life in Blocks: Multi-Agent Calendar Scheduling System
 
-An intelligent multi-agent calendar scheduling system that optimizes personal time management through AI-driven decision making, featuring persistent memory, adaptive control, and comprehensive evaluation.
+## 🎯 Introduction
 
-## 🎯 Overview
+**My Life in Blocks** is an intelligent multi-agent calendar scheduling system that transforms how you manage time. Instead of manually juggling meetings, deadlines, and personal commitments, four specialized AI agents collaborate to optimize your schedule based on your energy patterns, preferences, and constraints.
+
+The system learns from every interaction. When you schedule a morning workout, it remembers you prefer early exercise. When you decline back-to-back meetings, it learns to buffer your calendar. When you consistently work on creative tasks in the afternoon, it protects that time. This isn't just a calendar assistant—it's a personalized scheduling intelligence that evolves with you.
+
+**What makes it unique:**
+- **Four Specialized Agents**: Manager (queries), Planner (strategy), Executor (actions), Reviewer (accountability) working together through shared memory
+- **Persistent Learning**: 9-table Supabase architecture remembers preferences, successful plans, and performance patterns across all sessions
+- **Adaptive Behavior**: Real-time feedback loop adjusts caching, retry strategies, and confidence thresholds based on actual performance
+- **Energy-Aware Scheduling**: Respects your chronotype, energy levels, and work patterns when suggesting meeting times
+- **Comprehensive Testing**: 40 evaluation scenarios ensure reliability across time logic, retrieval, calendar operations, and complex workflows
+- **Modern Web Interface**: Streamlit UI makes agent interaction intuitive—no CLI required
+
+Whether you're scheduling a single meeting or planning a complex multi-day project, the system handles conflict detection, energy optimization, and intelligent time allocation while learning your preferences for future requests.
+
+## 🚀 Quick Overview
 
 Four specialized AI agents collaborate to manage your calendar with energy-aware scheduling, conflict detection, and cross-session learning. The system features a modern Streamlit web interface for easy user interaction, persistent memory across sessions, adaptive control with real feedback-driven behavioral changes, and comprehensive evaluation framework with 40 test scenarios.
 
