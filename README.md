@@ -615,7 +615,7 @@ See [FAILURE_CASE_REPORT.md](FAILURE_CASE_REPORT.md) for detailed analysis of sy
 - Streamlit web interface
 - System testing and optimization
 
-**Mohamed Awud**:
+**[Mohamed Awud](https://github.com/Abdallllllah)**:
 - RAG system with advanced semantic chunking (11 chunk types)
 - Dual-collection architecture with metadata system
 - Importance scoring (0.3-1.0) and priority-based retrieval
